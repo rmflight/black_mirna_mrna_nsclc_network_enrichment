@@ -78,11 +78,12 @@ stringData <- read.table(file.path(stringFileLoc, "9606.protein.links.detailed.v
 head(stringData)
 ```
 
-We will use the cutoff for `combined_score` of 400 (the default in STRING itself), and then filter down to just those things with co-expression, experimental, and database evidence.
+We will use the cutoff for `combined_score` of 400 (the default in STRING itself), and then filter down to just those things with co-expression, experimental or database evidence.
 
 ```{r filterData}
-minScores <- c(combined_score=400, coexpression=1, experimental=1, database=1)
-passesScore <- rep(TRUE, nrow(stringData))
+combScore <- 400
+minScores <- c(experimental=1, database=1, coexpression=1)
+passesScore <- rep(FALSE, nrow(stringData))
 invisible(lapply(names(minScores), function(evidence){
   passesScore <<- passesScore & (stringData[, evidence] >= minScores[evidence])
 }))
@@ -93,6 +94,10 @@ head(stringData[passesScore,])
 stringData <- stringData[passesScore,]
 ```
 
+Now that we have possible interactions, we need to filter them down to links that involve our actual proteins of interest.
 
-
+```{r getUsefulLinks}
+rnd1 <- which((stringData$protein1 %in% outMRNA_mapped$STRING_id) | (stringData$protein2 %in% outMRNA_mapped$STRING_id))
+rnd1_ID <- c(stringData$protein1[rnd1], stringData$protein2[rnd1])
+```
 
