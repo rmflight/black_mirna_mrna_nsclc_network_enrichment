@@ -64,14 +64,23 @@ We want to convert our *Affy* ID's to other gene symbols and names for further u
 outMRNA <- select(hgu133plus2.db, useMRNA$gene, c("SYMBOL", "GENENAME", "ENTREZID"), "PROBEID")
 ```
 
-Because we don't have direct access to STRING's translations, lets use a STRINGdb instance to do mapping to STRING IDs.
+Because we don't have direct access to STRING's translations, lets use a STRINGdb instance to do mapping of SYMBOLs to STRING IDs.
 
 ```{r setupSTRINGdb}
 string_db <- STRINGdb$new(version="9_1", species=9606, input_directory=stringFileLoc)
+outMRNA_mapped <- string_db$map(outMRNA, "SYMBOL", removeUnmappedRows=TRUE)
 ```
 
+We've previously downloaded the STRINGdb files for human. Let's load them up and parse them down.
+
+```{r stringData}
+stringData <- read.table(file.path(stringFileLoc, "9606.protein.links.detailed.v9.1.txt"), header=TRUE, sep=" ", stringsAsFactors=FALSE)
+head(stringData)
+```
+
+
 ```{r translate2String}
-useMRNA_mapped <- string_db$map(outMRNA, "SYMBOL", removeUnmappedRows=TRUE)
+
 useMRNA_mapped$Symbol <- unlist(mget(useMRNA_mapped$gene, hgu133plus2SYMBOL, ifnotfound=NA))
 mrnaNeighbors <- string_db$get_neighbors(useMRNA_mapped$STRING_id)
 
