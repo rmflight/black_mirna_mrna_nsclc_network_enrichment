@@ -1,5 +1,12 @@
 # Network Analysis
 
+```{r setup}
+library(STRINGdb)
+library(graph)
+library(RCytoscape)
+```
+
+
 ## Data
 
 mRNA and miRNA from NSCLC cell lines with differential response to erolotinib (EGFR inhibitor). Affy U133 2.0, miRNA TaqMan card.
@@ -45,4 +52,16 @@ useMRNA_mapped <- string_db$map(useMRNA, "gene", removeUnmappedRows=TRUE)
 mrnaNeighbors <- string_db$get_neighbors(useMRNA_mapped$STRING_id)
 
 allProteins <- unique(c(useMRNA_mapped$STRING_id, mrnaNeighbors))
+allInteractions <- string_db$get_interactions(allProteins)
+
+keepInt <- (allInteractions$coexpression > 0) & (allInteractions$experimental > 0)
+
+allInteractions <- allInteractions[keepInt,]
 ```
+
+Now that we have a set of filtered interactions, we can examine the network and see what is going on.
+
+```{r genNetwork}
+
+```
+
