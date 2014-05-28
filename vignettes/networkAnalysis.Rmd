@@ -58,20 +58,20 @@ sum(splitCount >= nMin)
 useMRNA <- data.frame(gene=names(splitCount)[splitCount >= nMin], stringsAsFactors=FALSE)
 ```
 
+We want to convert our *Affy* ID's to other gene symbols and names for further use.
 
-
-```{r}
-
+```{r convertID}
+outMRNA <- select(hgu133plus2.db, useMRNA$gene, c("SYMBOL", "GENENAME", "ENTREZID"), "PROBEID")
 ```
 
-
+Because we don't have direct access to STRING's translations, lets use a STRINGdb instance to do mapping to STRING IDs.
 
 ```{r setupSTRINGdb}
-string_db <- STRINGdb$new(version="9_1", species=9606)
+string_db <- STRINGdb$new(version="9_1", species=9606, input_directory=stringFileLoc)
 ```
 
 ```{r translate2String}
-useMRNA_mapped <- string_db$map(useMRNA, "gene", removeUnmappedRows=TRUE)
+useMRNA_mapped <- string_db$map(outMRNA, "SYMBOL", removeUnmappedRows=TRUE)
 useMRNA_mapped$Symbol <- unlist(mget(useMRNA_mapped$gene, hgu133plus2SYMBOL, ifnotfound=NA))
 mrnaNeighbors <- string_db$get_neighbors(useMRNA_mapped$STRING_id)
 
