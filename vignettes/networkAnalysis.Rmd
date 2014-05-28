@@ -39,29 +39,44 @@ newmRNA <- sapply(seq(1, nrow(mirData)), function(x){
 mirData$mRNA <- newmRNA
 ```
 
+What is the distribution of associations of miRNA's to mRNA from the PLS results?
+
 ```{r linkDistribution}
 splitMRNA <- split(mirData$miRNA, mirData$mRNA)
 splitCount <- sapply(splitMRNA, length)
 hist(splitCount)
-sum(splitCount >= 5)
+```
 
-useMRNA <- data.frame(gene=names(splitCount)[splitCount >= 5], stringsAsFactors=FALSE)
+Based on this (and comments from P Black), we will restrict our analysis to those Affy probesets with at least **5** miRNA associations.
+
+```{r filterMRNA}
+nMin <- 5
+sum(splitCount >= nMin)
+
+useMRNA <- data.frame(gene=names(splitCount)[splitCount >= nMin], stringsAsFactors=FALSE)
 ```
 
 
+
+```{r}
+
+```
+
+
+
 ```{r setupSTRINGdb}
-library(STRINGdb)
 string_db <- STRINGdb$new(version="9_1", species=9606)
 ```
 
 ```{r translate2String}
 useMRNA_mapped <- string_db$map(useMRNA, "gene", removeUnmappedRows=TRUE)
+useMRNA_mapped$Symbol <- unlist(mget(useMRNA_mapped$gene, hgu133plus2SYMBOL, ifnotfound=NA))
 mrnaNeighbors <- string_db$get_neighbors(useMRNA_mapped$STRING_id)
 
 allProteins <- unique(c(useMRNA_mapped$STRING_id, mrnaNeighbors))
 allInteractions <- string_db$get_interactions(allProteins)
 
-keepInt <- (allInteractions$coexpression > 0) & (allInteractions$experimental > 0)
+keepInt <- (allInteractions$coexpression > 0) & (allInteractions$experimental > 0) & 
 
 allInteractions <- allInteractions[keepInt,]
 ```
@@ -69,6 +84,29 @@ allInteractions <- allInteractions[keepInt,]
 Now that we have a set of filtered interactions, we can examine the network and see what is going on.
 
 ```{r genNetwork}
+intGraph <- graphNEL(nodes=unique(c(allInteractions$from, allInteractions$to)), edgemode="directed")
 
+intGraph <- addEdge(allInteractions$from, allInteractions$to, intGraph)
+```
+
+```{r translateID}
+stringID <- nodes(intGraph)
+enspID <- substr(stringID, 6, 20)
+entrID <- unlist(mget(enspID, org.Hs.egENSEMBLPROT2EG, ifnotfound=NA))
+symbolID <- sapply(entrID, function(x){
+  if (!is.na(x)){
+    unlist(mget(x, org.Hs.egSYMBOL, ifnotfound=NA))
+  } else {
+    NA
+  }
+})
+symbolID <- unlist(symbolID, use.names=FALSE)
+nameID <- sapply(entrID, function(x){
+  if (!is.na(x)){
+    unlist(mget(x, org.Hs.egGENENAME, ifnotfound=NA))
+  } else {
+    NA
+  }
+})
 ```
 
