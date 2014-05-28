@@ -1,0 +1,43 @@
+# Network Analysis
+
+## Data
+
+mRNA and miRNA from NSCLC cell lines with differential response to erolotinib (EGFR inhibitor). Affy U133 2.0, miRNA TaqMan card.
+
+After reading in the data, what are our options?
+
+* Use *STRINGdb* to get PPI (definite)
+* Use *reactomedb* to get pathway membership (and consider co-occurence in pathway as an edge)
+* Use *KEGGREST* and *KEGGGraph* to get pathway links between genes
+
+stringdb - http://www.bioconductor.org/packages/release/bioc/vignettes/STRINGdb/inst/doc/STRINGdb.pdf
+reactomedb
+
+LOO cross-validated PLS results giving interactions between miRNA and mRNA.
+
+```{r loadData}
+mirData <- read.table("compiledinteractiondata.csv", header=TRUE, stringsAsFactors=FALSE, sep=",")
+newmRNA <- sapply(seq(1, nrow(mirData)), function(x){
+  useID <- mirData$mRNA[x]
+  nID <- nchar(useID)
+  substring(useID, 2, nID)
+})
+mirData$mRNA <- newmRNA
+```
+
+```{r linkDistribution}
+splitMRNA <- split(mirData$miRNA, mirData$mRNA)
+splitCount <- sapply(splitMRNA, length)
+hist(splitCount)
+sum(splitCount >= 5)
+
+useMRNA <- names(splitCount)[splitCount >= 5]
+```
+
+
+
+```{r setupSTRINGdb}
+library(STRINGdb)
+string_db <- STRINGdb$new(version="9_1", species=9606)
+```
+
