@@ -4,8 +4,15 @@
 library(STRINGdb)
 library(graph)
 library(RCytoscape)
+library(org.Hs.eg.db)
+library(hgu133plus2.db)
 ```
 
+
+# First question
+
+* Which of the 13 that map to STRING, which ones map to AKT(??) and EGFR pathway? 
+* any other pathways?
 
 ## Data
 
