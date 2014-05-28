@@ -6,6 +6,8 @@ library(graph)
 library(RCytoscape)
 library(org.Hs.eg.db)
 library(hgu133plus2.db)
+
+stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
 ```
 
 
