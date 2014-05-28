@@ -31,9 +31,8 @@ splitCount <- sapply(splitMRNA, length)
 hist(splitCount)
 sum(splitCount >= 5)
 
-useMRNA <- names(splitCount)[splitCount >= 5]
+useMRNA <- data.frame(gene=names(splitCount)[splitCount >= 5], stringsAsFactors=FALSE)
 ```
-
 
 
 ```{r setupSTRINGdb}
@@ -41,3 +40,9 @@ library(STRINGdb)
 string_db <- STRINGdb$new(version="9_1", species=9606)
 ```
 
+```{r translate2String}
+useMRNA_mapped <- string_db$map(useMRNA, "gene", removeUnmappedRows=TRUE)
+mrnaNeighbors <- string_db$get_neighbors(useMRNA_mapped$STRING_id)
+
+allProteins <- unique(c(useMRNA_mapped$STRING_id, mrnaNeighbors))
+```
