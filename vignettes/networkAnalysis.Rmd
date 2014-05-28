@@ -78,46 +78,21 @@ stringData <- read.table(file.path(stringFileLoc, "9606.protein.links.detailed.v
 head(stringData)
 ```
 
+We will use the cutoff for `combined_score` of 400 (the default in STRING itself), and then filter down to just those things with co-expression, experimental, and database evidence.
 
-```{r translate2String}
-
-useMRNA_mapped$Symbol <- unlist(mget(useMRNA_mapped$gene, hgu133plus2SYMBOL, ifnotfound=NA))
-mrnaNeighbors <- string_db$get_neighbors(useMRNA_mapped$STRING_id)
-
-allProteins <- unique(c(useMRNA_mapped$STRING_id, mrnaNeighbors))
-allInteractions <- string_db$get_interactions(allProteins)
-
-keepInt <- (allInteractions$coexpression > 0) & (allInteractions$experimental > 0) & 
-
-allInteractions <- allInteractions[keepInt,]
+```{r filterData}
+minScores <- c(combined_score=400, coexpression=1, experimental=1, database=1)
+passesScore <- rep(TRUE, nrow(stringData))
+invisible(lapply(names(minScores), function(evidence){
+  passesScore <<- passesScore & (stringData[, evidence] >= minScores[evidence])
+}))
+head(stringData[passesScore,])
 ```
 
-Now that we have a set of filtered interactions, we can examine the network and see what is going on.
-
-```{r genNetwork}
-intGraph <- graphNEL(nodes=unique(c(allInteractions$from, allInteractions$to)), edgemode="directed")
-
-intGraph <- addEdge(allInteractions$from, allInteractions$to, intGraph)
+```{r trueFilter}
+stringData <- stringData[passesScore,]
 ```
 
-```{r translateID}
-stringID <- nodes(intGraph)
-enspID <- substr(stringID, 6, 20)
-entrID <- unlist(mget(enspID, org.Hs.egENSEMBLPROT2EG, ifnotfound=NA))
-symbolID <- sapply(entrID, function(x){
-  if (!is.na(x)){
-    unlist(mget(x, org.Hs.egSYMBOL, ifnotfound=NA))
-  } else {
-    NA
-  }
-})
-symbolID <- unlist(symbolID, use.names=FALSE)
-nameID <- sapply(entrID, function(x){
-  if (!is.na(x)){
-    unlist(mget(x, org.Hs.egGENENAME, ifnotfound=NA))
-  } else {
-    NA
-  }
-})
-```
+
+
 
