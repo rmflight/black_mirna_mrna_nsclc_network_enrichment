@@ -82,11 +82,12 @@ We will use the cutoff for `combined_score` of 400 (the default in STRING itself
 
 ```{r filterData}
 combScore <- 400
-minScores <- c(experimental=1, database=1, coexpression=1)
+minScores <- c(experimental=400, database=400, coexpression=400)
 passesScore <- rep(FALSE, nrow(stringData))
 invisible(lapply(names(minScores), function(evidence){
-  passesScore <<- passesScore & (stringData[, evidence] >= minScores[evidence])
+  passesScore <<- passesScore | (stringData[, evidence] >= minScores[evidence])
 }))
+passesScore <- passesScore & (stringData$combined_score >= combScore)
 head(stringData[passesScore,])
 ```
 
@@ -98,6 +99,13 @@ Now that we have possible interactions, we need to filter them down to links tha
 
 ```{r getUsefulLinks}
 rnd1 <- which((stringData$protein1 %in% outMRNA_mapped$STRING_id) | (stringData$protein2 %in% outMRNA_mapped$STRING_id))
-rnd1_ID <- c(stringData$protein1[rnd1], stringData$protein2[rnd1])
+rnd1_ID <- unique(c(stringData$protein1[rnd1], stringData$protein2[rnd1]))
+
+rnd2 <- which((stringData$protein1 %in% rnd1_ID) | (stringData$protein2 %in% rnd1_ID))
+
+useEdges <- unique(c(rnd1, rnd2))
+
+stringEdges <- stringData[useEdges,]
+nrow(stringEdges)
 ```
 
