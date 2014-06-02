@@ -69,6 +69,7 @@ Because we don't have direct access to STRING's translations, lets use a STRINGd
 ```{r setupSTRINGdb}
 string_db <- STRINGdb$new(version="9_1", species=9606, input_directory=stringFileLoc)
 outMRNA_mapped <- string_db$map(outMRNA, "SYMBOL", removeUnmappedRows=TRUE)
+outMRNA_mapped$ENSEMBLPROT <- substring(outMRNA_mapped$STRING_id, 6, 20)
 ```
 
 We've previously downloaded the STRINGdb files for human. Let's load them up and parse them down.
@@ -108,4 +109,55 @@ useEdges <- unique(c(rnd1, rnd2))
 stringEdges <- stringData[useEdges,]
 nrow(stringEdges)
 ```
+
+Now we should instantiate the network, and start adding information to it.
+
+```{r createNetwork}
+allNodes <- unique(c(stringEdges$protein1, stringEdges$protein2))
+stringGraph <- graphNEL(nodes=allNodes, edgemode="directed")
+stringGraph <- addEdge(stringEdges$protein1, stringEdges$protein2, stringGraph)
+```
+
+We also need to know some other stuff about the nodes.
+
+```{r otherNodeData}
+trimNodes <- substring(allNodes, 6, 20)
+nodeInfo <- select(org.Hs.eg.db, trimNodes, c("SYMBOL", "GENENAME", "ENTREZID"), keytype="ENSEMBLPROT")
+nodeInfo$nodeID <- paste("9606.", nodeInfo$ENSEMBLPROT, sep="")
+
+# this last section is to make sure we are using the info from the affy chip for those nodes we already had.
+hasNodes <- nodeInfo$nodeID %in% outMRNA_mapped$STRING_id
+nodeInfo <- nodeInfo[!hasNodes,]
+
+outMRNA_mapped$nodeID <- outMRNA_mapped$STRING_id
+nodeInfo <- rbind(nodeInfo, outMRNA_mapped[,c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "nodeID")])
+nodeInfo <- nodeInfo[(nodeInfo$nodeID %in% nodes(stringGraph)),]
+```
+
+We are also going to indicate which nodes originated from our original measurements
+
+```{r addChipInfo}
+nodeInfo$fromChip <- as.character(nodeInfo$nodeID %in% outMRNA_mapped$nodeID)
+```
+
+And add all that lovely data to our graph.
+
+```{r addNodeData}
+for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "fromChip")){
+  nodeDataDefaults(stringGraph, iName) <- ""
+  attr(nodeDataDefaults(stringGraph, iName), "class") <- "STRING"
+  nodeData(stringGraph, nodeInfo$nodeID, iName) <- nodeInfo[,iName]
+}
+```
+
+Now lets see what we can see.
+
+```{r loadCytoscape}
+cw <- CytoscapeWindow("stringgraph", stringGraph)
+displayGraph(cw)
+layoutNetwork(cw, "force-directed")
+```
+
+OK, where do the AKT(1, 2, 3) genes show up?
+
 
