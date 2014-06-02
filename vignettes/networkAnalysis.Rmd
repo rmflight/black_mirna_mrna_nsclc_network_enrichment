@@ -102,12 +102,17 @@ head(stringData[passesScore,])
 stringData <- stringData[passesScore,]
 ```
 
-Now that we have possible interactions, we need to filter them down to links that involve our actual proteins of interest.
+Now that we have possible interactions, we need to filter them down to links that involve our actual proteins of interest, and any links between those proteins.
 
 ```{r getUsefulLinks}
 rnd1 <- which((stringData$protein1 %in% outMRNA_mapped$STRING_id) | (stringData$protein2 %in% outMRNA_mapped$STRING_id))
 
-useEdges <- rnd1
+useNodes <- unique(c(stringData$protein1[rnd1], stringData$protein2[rnd1]))
+
+hasP1 <- stringData$protein1 %in% useNodes
+hasP2 <- stringData$protein2 %in% useNodes
+
+useEdges <- hasP1 & hasP2
 
 stringEdges <- stringData[useEdges,]
 nrow(stringEdges)
