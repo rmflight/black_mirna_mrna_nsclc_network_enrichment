@@ -164,6 +164,13 @@ displayGraph(cw)
 layoutNetwork(cw, "force-directed")
 ```
 
+Where are the original genes?
+
+```{r selectOriginal}
+orgNodes <- nodeInfo$nodeID[as.logical(nodeInfo$fromChip)]
+selectNodes(cw, orgNodes, preserve.current.selection=FALSE)
+```
+
 OK, where do the AKT(1, 2, 3) genes show up?
 
 
