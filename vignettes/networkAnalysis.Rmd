@@ -166,7 +166,7 @@ Now lets see what we can see.
 ```{r loadCytoscape}
 cw <- CytoscapeWindow("stringgraph", stringGraph)
 displayGraph(cw)
-layoutNetwork(cw, "force-directed")
+layoutNetwork(cw, "kamada-kawai")
 ```
 
 Where are the original genes?
@@ -176,6 +176,12 @@ orgNodes <- nodeInfo$nodeID[as.logical(nodeInfo$fromChip)]
 selectNodes(cw, orgNodes, preserve.current.selection=FALSE)
 ```
 
-OK, where do the AKT(1, 2, 3) genes show up?
+OK, where do the AKT(1, 2, 3) genes show up, and what are their second neighbors?
 
+```{r aktGenes}
+aktNodes <- nodeInfo$nodeID[(nodeInfo$SYMBOL %in% c("AKT1", "AKT2", "AKT3"))]
+selectNodes(cw, aktNodes, preserve.current.selection=FALSE)
+selectFirstNeighborsOfSelectedNodes(cw)
+selectFirstNeighborsOfSelectedNodes(cw)
+```
 
