@@ -189,42 +189,12 @@ selectFirstNeighborsOfSelectedNodes(cw)
 
 ## Communities
 
-What about any communities in the graph?
+What about any communities in the graph? 
 
-### Edge-Betweenness
-
-```{r communityDetection}
-commGraph <- igraph.from.graphNEL(stringGraph)
-ebComm <- edge.betweenness.community(commGraph)
-```
-
-```{r ebComms}
-ebAll <- communityAsList(ebComm)
-```
-
-```{r selectEB}
-selectNodes(cw, ebAll[[1]], preserve.current.selection=FALSE)
-selectNodes(cw, ebAll[[2]], preserve.current.selection=FALSE)
-selectNodes(cw, ebAll[[3]], preserve.current.selection=FALSE)
-```
-
-### Label Propagation
-
-```{r labelProp}
-lpComm <- label.propagation.community(commGraph)
-lpAll <- communityAsList(lpComm)
-```
-
-```{r selectLP}
-selectNodes(cw, lpAll[[1]], preserve.current.selection=FALSE)
-selectNodes(cw, lpAll[[2]], preserve.current.selection=FALSE)
-selectNodes(cw, lpAll[[3]], preserve.current.selection=FALSE) # one with AKT1,3
-selectNodes(cw, lpAll[[4]], preserve.current.selection=FALSE)
-```
-
-### Walktrap
+Note that multiple community detection algorithms were tried (edge-betweenness, label-propagation, and walktrap), and the results from the **walktrap** algorithm are actually used in subsequent analyses.
 
 ```{r walktrap}
+commGraph <- igraph.from.graphNEL(stringGraph)
 wtComm <- walktrap.community(commGraph)
 wtAll <- communityAsList(wtComm)
 ```
@@ -235,3 +205,4 @@ selectNodes(cw, wtAll[[2]], preserve.current.selection=FALSE)
 selectNodes(cw, wtAll[[3]], preserve.current.selection=FALSE)
 ```
 
+### Community Characterization
