@@ -3,6 +3,7 @@
 ```{r setup}
 library(STRINGdb)
 library(graph)
+library(igraph)
 library(RCytoscape)
 library(org.Hs.eg.db)
 library(hgu133plus2.db)
