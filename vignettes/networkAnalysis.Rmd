@@ -199,8 +199,7 @@ ebComm <- edge.betweenness.community(commGraph)
 ```
 
 ```{r ebComms}
-ebAll <- split(ebComm$names, ebComm$membership)
-ebAll <- ebAll[order(sapply(ebAll, length), decreasing=TRUE)]
+ebAll <- communityAsList(ebComm)
 ```
 
 ```{r selectEB}
@@ -213,8 +212,7 @@ selectNodes(cw, ebAll[[3]], preserve.current.selection=FALSE)
 
 ```{r labelProp}
 lpComm <- label.propagation.community(commGraph)
-lpAll <- split(lpComm$names, lpComm$membership)
-lpAll <- lpAll[order(sapply(lpAll, length), decreasing=TRUE)]
+lpAll <- communityAsList(lpComm)
 ```
 
 ```{r selectLP}
@@ -228,5 +226,12 @@ selectNodes(cw, lpAll[[4]], preserve.current.selection=FALSE)
 
 ```{r walktrap}
 wtComm <- walktrap.community(commGraph)
+wtAll <- communityAsList(wtComm)
+```
+
+```{r selectWT}
+selectNodes(cw, wtAll[[1]], preserve.current.selection=FALSE)
+selectNodes(cw, wtAll[[2]], preserve.current.selection=FALSE)
+selectNodes(cw, wtAll[[3]], preserve.current.selection=FALSE)
 ```
 
