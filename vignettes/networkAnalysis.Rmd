@@ -310,3 +310,26 @@ names(allKGML) <- allPaths
 save(allKGML, file="inst/data/allKGML.RData")
 ```
 
+```{r parseandExpand}
+data(allKGML)
+allGraphs <- lapply(allKGML, function(x){
+  parseKGML2Graph(x, genesOnly=FALSE, expandGenes=TRUE)
+})
+```
+
+Do any of these involve the AKT1, 2, 3 genes?
+
+```{r AKTGenes}
+aktEntrez <- nodeInfo$ENTREZID[grep("AKT", nodeInfo$SYMBOL)]
+stripHSA <- function(nodeNames){
+  startHSA <- grep("^hsa", nodeNames, value=TRUE)
+  substring(startHSA, 5)
+}
+hasAKT <- sapply(allGraphs, function(x){
+  sum(aktEntrez %in% stripHSA(nodes(x))) > 0
+})
+```
+
+Yes indeed, there are `r sum(hasAKT)` pathways that have the AKT genes in them directly. 
+
+Can we merge and plot the pathways?
