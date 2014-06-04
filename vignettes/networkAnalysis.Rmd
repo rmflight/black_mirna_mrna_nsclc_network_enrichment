@@ -209,6 +209,48 @@ selectNodes(cw, wtAll[[2]], preserve.current.selection=FALSE)
 selectNodes(cw, wtAll[[3]], preserve.current.selection=FALSE)
 ```
 
+Which community has the AKT? genes in it?
+
+```{r commAKT}
+sapply(wtAll, function(x){
+  sum(x %in% aktNodes)
+})
+```
+
+Cluster 1 has two of the AKT genes in it. Which ones are they?
+
+```{r whichAKT, echo=FALSE, results='asis'}
+whichAKT <- nodeInfo[(nodeInfo$nodeID %in% (wtAll[[1]][wtAll[[1]] %in% aktNodes])),]
+print(xtable(whichAKT), type="html", html.table.attributes='style = "border-spacing:20px 5x;"', include.rownames=FALSE)
+```
+
+And which genes from the original array are also in this cluster?
+
+```{r whichOrg}
+whichOrg <- nodeInfo[(as.logical(nodeInfo$fromChip) & (nodeInfo$nodeID %in% wtAll[[1]])),]
+print(xtable(whichOrg), type="html", html.table.attributes='style = "border-spacing:20px 5x;"', include.rownames=FALSE)
+```
+
+Working with just the first community, which genes are connected to AKT1,3? We will allow two links out.
+
+```{r comm1AKT}
+comm1Graph <- subGraph(wtAll[[1]], stringGraph)
+connAKT <- adj(comm1Graph, aktNodes)
+aktLink1 <- unlist(connAKT)
+connAKT <- adj(comm1Graph, aktLink1)
+aktLink2 <- unique(unlist(connAKT))
+aktLink2 <- aktLink2[!(aktLink2 %in% aktLink1)]
+
+nodeComm1 <- nodeInfo[(nodeInfo$nodeID %in% wtAll[[1]]),]
+nodeComm1$link2AKT <- 0
+nodeComm1$link2AKT[nodeComm1$nodeID %in% aktLink1] <- 1
+nodeComm1$link2AKT[nodeComm1$nodeID %in% aktLink2] <- 2
+```
+
+```{r printComm1AKT, echo=FALSE, results='asis'}
+print(xtable(nodeComm1), type="html", html.table.attributes='style = "border-spacing:20px 5x;"', include.rownames=FALSE)
+```
+
 ### Community Characterization
 
 Can we characterize the three biggest communities using the Gene Ontology?
