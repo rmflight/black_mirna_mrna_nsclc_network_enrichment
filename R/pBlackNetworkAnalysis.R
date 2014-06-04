@@ -11,3 +11,10 @@ communityAsList <- function(commObject, decreasing=TRUE){
   listCommunity <- listCommunity[commOrder]
   return(listCommunity)
 }
+
+#' @name allKGML.RData
+#' @title allKGML.RData
+#' @docType data
+#' @source downloaded using KEGGREST from KEGG on June 4, 2014
+#' @details contains set of KGML xml data that P Blacks genes were annotated to as of June 4, 2014
+NULL
