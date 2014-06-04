@@ -9,6 +9,7 @@ library(RCytoscape)
 library(org.Hs.eg.db)
 library(hgu133plus2.db)
 library(categoryCompare)
+library(GO.db)
 
 stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
 ```
@@ -210,4 +211,26 @@ selectNodes(cw, wtAll[[3]], preserve.current.selection=FALSE)
 ### Community Characterization
 
 Can we characterize the three biggest communities using the Gene Ontology?
+
+```{r setUpLists}
+gUniverse <- mappedkeys(org.Hs.egENSEMBLPROT)
+wtLists <- lapply(wtAll[seq(1,3)], function(inComm){
+  commGenes <- unique(nodeInfo$ENTREZID[nodeInfo$nodeID %in% inComm])
+  list(genes=commGenes, universe=gUniverse, annotation="org.Hs.eg.db")
+})
+names(wtLists) <- paste("C", seq(1,3), sep="")
+wtLists <- new("ccGeneList", wtLists, ccType=c("BP", "MF", "CC"))
+```
+
+```{r runEnrichment}
+wtEnrich <- ccEnrich(wtLists)
+wtOpts <- new("ccOptions", listNames=names(wtLists))
+wtCompare <- ccCompare(wtEnrich, wtOpts)
+```
+
+```{r visCompare}
+wtBP <- ccOutCyt(wtCompare$BP, wtOpts, postText="wtBP")
+```
+
+
 
