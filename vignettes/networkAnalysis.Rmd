@@ -11,6 +11,8 @@ library(hgu133plus2.db)
 library(categoryCompare)
 library(GO.db)
 library(xtable)
+library(KEGGREST)
+library(KEGGgraph)
 
 stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
 ```
@@ -289,4 +291,22 @@ This doesn't seem to be helping us a whole lot.
 ### Interactions via STRINGDB Summary
 
 There are a lot of genes that interact with a few of the measured genes that also interact with AKT1 and AKT3. 
+
+
+## KEGG Pathways
+
+Lets query the specific KEGG Pathways that all of our genes are involved in, and then see what else is around that may be interesting.
+
+```{r queryKEGG, eval=FALSE}
+keggGenes <- paste("hsa", outMRNA$ENTREZID, sep=":")
+outMRNAPathways <- keggLink("pathway", keggGenes)
+allPaths <- unique(outMRNAPathways)
+allPaths <- substring(allPaths, 6)
+allKGML <- lapply(allPaths, function(x){
+  keggGet(x, "kgml")
+})
+
+names(allKGML) <- allPaths
+save(allKGML, file="inst/data/allKGML.RData")
+```
 
