@@ -1,12 +1,14 @@
 # Network Analysis
 
 ```{r setup}
+library(pBlackNetworkAnalysis)
 library(STRINGdb)
 library(graph)
 library(igraph)
 library(RCytoscape)
 library(org.Hs.eg.db)
 library(hgu133plus2.db)
+library(categoryCompare)
 
 stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
 ```
@@ -206,3 +208,6 @@ selectNodes(cw, wtAll[[3]], preserve.current.selection=FALSE)
 ```
 
 ### Community Characterization
+
+Can we characterize the three biggest communities using the Gene Ontology?
+
