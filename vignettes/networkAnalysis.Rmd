@@ -10,6 +10,7 @@ library(org.Hs.eg.db)
 library(hgu133plus2.db)
 library(categoryCompare)
 library(GO.db)
+library(xtable)
 
 stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
 ```
@@ -224,13 +225,26 @@ wtLists <- new("ccGeneList", wtLists, ccType=c("BP", "MF", "CC"))
 
 ```{r runEnrichment}
 wtEnrich <- ccEnrich(wtLists)
+pvalueCutoff(wtEnrich$BP) <- 0.01
 wtOpts <- new("ccOptions", listNames=names(wtLists))
 wtCompare <- ccCompare(wtEnrich, wtOpts)
 ```
 
 ```{r visCompare}
+wtCompare$BP <- breakEdges(wtCompare$BP, 0.8)
 wtBP <- ccOutCyt(wtCompare$BP, wtOpts, postText="wtBP")
+breakEdges(wtBP, 1)
+
+wtMF <- ccOutCyt(wtCompare$MF, wtOpts)
+breakEdges(wtMF, 0.8)
+
+wtCC <- ccOutCyt(wtCompare$CC, wtOpts)
+breakEdges(wtCC, 0.8)
 ```
 
+This doesn't seem to be helping us a whole lot. 
 
+### Interactions via STRINGDB Summary
+
+There are a lot of genes that interact with a few of the measured genes that also interact with AKT1 and AKT3. 
 
