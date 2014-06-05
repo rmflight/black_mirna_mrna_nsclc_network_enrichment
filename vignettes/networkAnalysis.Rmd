@@ -333,3 +333,8 @@ hasAKT <- sapply(allGraphs, function(x){
 Yes indeed, there are `r sum(hasAKT)` pathways that have the AKT genes in them directly. 
 
 Can we merge and plot the pathways?
+
+```{r mergePaths}
+mergePaths <- mergeKEGGgraphs(allGraphs)
+```
+
