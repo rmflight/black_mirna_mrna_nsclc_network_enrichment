@@ -174,26 +174,45 @@ for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "fromChip")){
 
 ### EIF4B / RAB8A
 
-For a student application, trim down to just those things that connect to EIF4B / RAB8A.
+For a student application, generate neighborhood for just EIF4B / RAB8A.
 
-```{r eifrab8}
-eifrabInfo <- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% c("EIF4B", "RAB8A")),]
+```{r eifrab}
+eifrabNodes <- nodeInfo$nodeID[nodeInfo$SYMBOL %in% c("EIF4B", "RAB8A")]
+eif1 <- which((stringData$protein1 %in% eifrabNodes) | (stringData$protein2 %in% eifrabNodes))
 
-eifrabNodes <- eifrabInfo$nodeID
+useNodes <- unique(c(stringData$protein1[eif1], stringData$protein2[eif1]))
 
-eifrabAttached <- adj(stringGraph, eifrabNodes)
-eifrabSubNodes <- unique(c(eifrabNodes, unlist(eifrabAttached)))
-eifrabGraph <- subGraph(eifrabSubNodes, stringGraph)
-eifrabGraph
+hasP1 <- stringData$protein1 %in% useNodes
+hasP2 <- stringData$protein2 %in% useNodes
+
+useEdges <- hasP1 & hasP2
+
+eifEdges <- stringData[useEdges,]
+nrow(eifEdges)
+
+eifNodes <- unique(c(eifEdges$protein1, eifEdges$protein2))
+eifGraph <- graphNEL(nodes=eifNodes, edgemode="directed")
+eifGraph <- addEdge(eifEdges$protein1, eifEdges$protein2, eifGraph)
+
+eifInfo <- nodeInfo[(nodeInfo$nodeID %in% nodes(eifGraph)),]
+
+for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "fromChip")){
+  nodeDataDefaults(eifGraph, iName) <- ""
+  attr(nodeDataDefaults(eifGraph, iName), "class") <- "STRING"
+  nodeData(eifGraph, eifInfo$nodeID, iName) <- eifInfo[,iName]
+}
+
+eifrabSubNodes <- eifNodes[!(eifNodes %in% eifrabNodes)]
 ```
+
 
 Visualize!
 
 ```{r visEIFRAB}
-cw.eifrab <- CytoscapeWindow("eifrab", eifrabGraph)
+cw.eifrab <- CytoscapeWindow("eifrab", eifGraph)
 displayGraph(cw.eifrab)
 layoutNetwork(cw.eifrab, "fruchterman-rheingold")
-setNodeLabelDirect(cw.eifrab, eifrabSubNodes, nodeData(eifrabGraph, eifrabSubNodes, "SYMBOL"))
+setNodeLabelDirect(cw.eifrab, eifrabSubNodes, nodeData(eifGraph, eifrabSubNodes, "SYMBOL"))
 redraw(cw.eifrab)
 setNodeColorDirect(cw.eifrab, eifrabNodes, "#F5C46F")
 redraw(cw.eifrab)
@@ -205,9 +224,9 @@ setDefaultBackgroundColor(cw.eifrab, "#FFFFFF")
 redraw(cw.eifrab)
 ```
 
-```{r eifrabNodeData}
-eifrabNodeData <- nodeInfo[(nodeInfo$nodeID %in% nodes(eifrabGraph)),]
-eifrabNodeData[order(eifrabNodeData$SYMBOL),]
+
+```{r eifInfo}
+eifInfo[order(eifInfo$SYMBOL),]
 ```
 
 
