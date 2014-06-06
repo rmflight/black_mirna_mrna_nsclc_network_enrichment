@@ -150,6 +150,9 @@ nodeInfo <- nodeInfo[!hasNodes,]
 outMRNA_mapped$nodeID <- outMRNA_mapped$protein_id
 nodeInfo <- rbind(nodeInfo, outMRNA_mapped[,c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "nodeID")])
 nodeInfo <- nodeInfo[(nodeInfo$nodeID %in% nodes(stringGraph)),]
+
+dupNodes <- duplicated(nodeInfo$nodeID)
+nodeInfo <- nodeInfo[!dupNodes,]
 ```
 
 We are also going to indicate which nodes originated from our original measurements
