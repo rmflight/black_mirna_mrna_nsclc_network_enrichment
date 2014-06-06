@@ -199,7 +199,7 @@ setNodeColorDirect(cw.eifrab, eifrabNodes, "#F5C46F")
 redraw(cw.eifrab)
 setNodeColorDirect(cw.eifrab, eifrabSubNodes[!(eifrabSubNodes %in% eifrabNodes)], "#6FA0F5")
 redraw(cw.eifrab)
-setEdgeColorDirect(cw.eifrab, as.character(cy2.edge.names(cw.eifrab@graph)), "#CCCCCC")
+setDefaultEdgeColor(cw.eifrab, "#CCCCCC")
 redraw(cw.eifrab)
 setDefaultBackgroundColor(cw.eifrab, "#FFFFFF")
 redraw(cw.eifrab)
@@ -207,14 +207,14 @@ redraw(cw.eifrab)
 
 ```{r eifrabNodeData}
 eifrabNodeData <- nodeInfo[(nodeInfo$nodeID %in% nodes(eifrabGraph)),]
-eifrabNodeData[order(eifrabNodeData$GENENAME),]
+eifrabNodeData[order(eifrabNodeData$SYMBOL),]
 ```
 
 
-Looking at many of these, they appear to be part of complexes (EIF3, CNOT, EIF4A, EXOC, RPL, RPS, SNORD, SNORA). How many individual nodes would we remove if we collapsed these to single representatives? We will also remove anything that has "NA" for it's other identifiers.
+Looking at many of these, they appear to be part of complexes (EIF3, CNOT, EXOC, RPL, RPS, SNORD, SNORA). How many individual nodes would we remove if we collapsed these to single representatives? We will also remove anything that has "NA" for it's other identifiers.
 
 ```{r collapseNodes}
-collapseSearch <- c("CNOT", "EIF3", "EXOC", "RPL", "RPS", "SNORD", "SNORA")
+collapseSearch <- c("CNOT", "EIF3", "EXOC", "RPL", "RPS")
 
 eifrabNodeData$collapseID <- eifrabNodeData$SYMBOL
 eifrabNodeData <- eifrabNodeData[!(is.na(eifrabNodeData$SYMBOL)),]
@@ -229,8 +229,38 @@ length(unique(eifrabNodeData$collapseID))
 
 So we've gone from a total of `r nrow(eifrabNodeData)` to `r length(unique(eifrabNodeData$collapseID))` nodes. Let's modify the graph and see if that improves matters.
 
-```{r}
+```{r collapseGraph}
+eifrabGraph <- subGraph(eifrabNodeData$nodeID, eifrabGraph)
+edgemode(eifrabGraph) <- "undirected"
 
+eifrabMatrix <- as(eifrabGraph, "matrix")
+
+eifrabNew <- eifrabMatrix
+eifrabNew <- rbind(eifrabNew, matrix(0, nrow=5, ncol=ncol(eifrabNew)))
+eifrabNew <- cbind(eifrabNew, matrix(0, nrow=nrow(eifrabNew), ncol=5))
+rownames(eifrabNew) <- c(rownames(eifrabMatrix), collapseSearch)
+colnames(eifrabNew) <- c(colnames(eifrabMatrix), collapseSearch)
+
+for (iCollapse in collapseSearch){
+  useID <- eifrabNodeData$nodeID[(eifrabNodeData$collapseID %in% iCollapse)]
+  
+  for (inID in useID){
+    hasRow <- rownames(eifrabNew)[eifrabNew[,inID] == 1]
+    eifrabNew[hasRow, iCollapse] <- 1
+    
+    hasCol <- colnames(eifrabNew)[eifrabNew[inID,] == 1]
+    eifrabNew[iCollapse, hasCol] <- 1
+  }
+}
+
+for (iCollapse in collapseSearch){
+  eifrabNew[iCollapse, iCollapse] <- 0
+}
+
+keepNodes <- c(eifrabNodeData$nodeID[!(eifrabNodeData$collapseID %in% collapseSearch)], collapseSearch)
+eifrabNew <- eifrabNew[keepNodes, keepNodes]
+
+eifrabNewGraph <- as(eifrabNew, "graphNEL")
 ```
 
 
