@@ -235,18 +235,18 @@ Looking at many of these, they appear to be part of complexes (EIF3, CNOT, EXOC,
 ```{r collapseNodes}
 collapseSearch <- c("CNOT", "EIF3", "EXOC", "RPL", "RPS")
 
-eifrabNodeData$collapseID <- eifrabNodeData$SYMBOL
-eifrabNodeData <- eifrabNodeData[!(is.na(eifrabNodeData$SYMBOL)),]
+eifInfo$collapseID <- eifInfo$SYMBOL
+eifInfo <- eifInfo[!(is.na(eifInfo$SYMBOL)),]
 
 for (checkCollapse in collapseSearch){
-  whichCollapse <- grep(checkCollapse, eifrabNodeData$SYMBOL)
-  eifrabNodeData$collapseID[whichCollapse] <- checkCollapse
+  whichCollapse <- grep(checkCollapse, eifInfo$SYMBOL)
+  eifInfo$collapseID[whichCollapse] <- checkCollapse
 }
 
-length(unique(eifrabNodeData$collapseID))
+length(unique(eifInfo$collapseID))
 ```
 
-So we've gone from a total of `r nrow(eifrabNodeData)` to `r length(unique(eifrabNodeData$collapseID))` nodes. Let's modify the graph and see if that improves matters.
+So we've gone from a total of `r nrow(eifInfo)` to `r length(unique(eifInfo$collapseID))` nodes. Let's modify the graph and see if that improves matters.
 
 ```{r collapseGraph}
 eifrabGraph <- subGraph(eifrabNodeData$nodeID, eifrabGraph)
