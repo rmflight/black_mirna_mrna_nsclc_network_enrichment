@@ -249,68 +249,67 @@ length(unique(eifInfo$collapseID))
 So we've gone from a total of `r nrow(eifInfo)` to `r length(unique(eifInfo$collapseID))` nodes. Let's modify the graph and see if that improves matters.
 
 ```{r collapseGraph}
-eifrabGraph <- subGraph(eifrabNodeData$nodeID, eifrabGraph)
-edgemode(eifrabGraph) <- "undirected"
+edgemode(eifGraph) <- "undirected"
 
-eifrabMatrix <- as(eifrabGraph, "matrix")
+eifMatrix <- as(eifGraph, "matrix")
 
-eifrabNew <- eifrabMatrix
-eifrabNew <- rbind(eifrabNew, matrix(0, nrow=5, ncol=ncol(eifrabNew)))
-eifrabNew <- cbind(eifrabNew, matrix(0, nrow=nrow(eifrabNew), ncol=5))
-rownames(eifrabNew) <- c(rownames(eifrabMatrix), collapseSearch)
-colnames(eifrabNew) <- c(colnames(eifrabMatrix), collapseSearch)
+eifNew <- eifMatrix
+eifNew <- rbind(eifNew, matrix(0, nrow=5, ncol=ncol(eifNew)))
+eifNew <- cbind(eifNew, matrix(0, nrow=nrow(eifNew), ncol=5))
+rownames(eifNew) <- c(rownames(eifMatrix), collapseSearch)
+colnames(eifNew) <- c(colnames(eifMatrix), collapseSearch)
 
 for (iCollapse in collapseSearch){
-  useID <- eifrabNodeData$nodeID[(eifrabNodeData$collapseID %in% iCollapse)]
+  useID <- eifInfo$nodeID[(eifInfo$collapseID %in% iCollapse)]
   
   for (inID in useID){
-    hasRow <- rownames(eifrabNew)[eifrabNew[,inID] == 1]
-    eifrabNew[hasRow, iCollapse] <- 1
+    hasRow <- rownames(eifNew)[eifNew[,inID] == 1]
+    eifNew[hasRow, iCollapse] <- 1
     
-    hasCol <- colnames(eifrabNew)[eifrabNew[inID,] == 1]
-    eifrabNew[iCollapse, hasCol] <- 1
+    hasCol <- colnames(eifNew)[eifNew[inID,] == 1]
+    eifNew[iCollapse, hasCol] <- 1
   }
 }
 
 for (iCollapse in collapseSearch){
-  eifrabNew[iCollapse, iCollapse] <- 0
+  eifNew[iCollapse, iCollapse] <- 0
 }
 
-keepNodes <- c(eifrabNodeData$nodeID[!(eifrabNodeData$collapseID %in% collapseSearch)], collapseSearch)
-eifrabNew <- eifrabNew[keepNodes, keepNodes]
+keepNodes <- c(eifInfo$nodeID[!(eifInfo$collapseID %in% collapseSearch)], collapseSearch)
+eifNew <- eifNew[keepNodes, keepNodes]
 
-eifrabNewGraph <- as(eifrabNew, "graphNEL")
+eifNewGraph <- as(eifNew, "graphNEL")
 ```
 
 Now we need to encode the data for it so we know what the nodes are again when we view them in a graph.
 
 ```{r eifrabData}
-eifrabNewData <- eifrabNodeData[(eifrabNodeData$nodeID %in% nodes(eifrabNewGraph)),]
+eifNewInfo <- eifInfo[(eifInfo$nodeID %in% nodes(eifNewGraph)),]
 collapseData <- data.frame(ENSEMBLPROT=collapseSearch, SYMBOL=collapseSearch, GENENAME=collapseSearch, ENTREZID=collapseSearch, nodeID=collapseSearch, fromChip=FALSE, collapseID=collapseSearch, stringsAsFactors=FALSE)
 
-eifrabNewData <- rbind(eifrabNewData, collapseData)
+eifNewInfo <- rbind(eifNewInfo, collapseData)
 
 for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "fromChip")){
-  nodeDataDefaults(eifrabNewGraph, iName) <- ""
-  attr(nodeDataDefaults(eifrabNewGraph, iName), "class") <- "STRING"
-  nodeData(eifrabNewGraph, eifrabNewData$nodeID, iName) <- eifrabNewData[,iName]
+  nodeDataDefaults(eifNewGraph, iName) <- ""
+  attr(nodeDataDefaults(eifNewGraph, iName), "class") <- "STRING"
+  nodeData(eifNewGraph, eifNewInfo$nodeID, iName) <- eifNewInfo[,iName]
 }
-eifrabNewGraph <- initEdgeAttribute(eifrabNewGraph, "weight", "numeric", 1)
+eifNewGraph <- initEdgeAttribute(eifNewGraph, "weight", "numeric", 1)
 ```
 
 Lets visualize this again!
 
 ```{r newEIFRAB}
-eifrabNodes <- eifrabNewData$nodeID[eifrabNewData$SYMBOL %in% c("EIF4B", "RAB8A")]
-eifrabNotNodes <- grep("^9606", eifrabNewData$nodeID, value=TRUE)
+eifrabNodes <- eifNewInfo$nodeID[eifNewInfo$SYMBOL %in% c("EIF4B", "RAB8A")]
+eifrabNotNodes <- grep("^9606", eifNewInfo$nodeID, value=TRUE)
 eifrabNotNodes <- eifrabNotNodes[!(eifrabNotNodes %in% eifrabNodes)]
 
-cw.eif2 <- CytoscapeWindow("eif2", eifrabNewGraph)
+cw.eif2 <- CytoscapeWindow("eif2", eifNewGraph)
 displayGraph(cw.eif2)
 setLayoutProperties(cw.eif2, layout.name="kamada-kawai-noweight", list(anticollisionStrength=4000, rest_length=100))
 layoutNetwork(cw.eif2, "kamada-kawai-noweight")
 redraw(cw.eif2)
-setNodeLabelDirect(cw.eif2, nodes(eifrabNewGraph), nodeData(eifrabNewGraph, nodes(eifrabNewGraph), "SYMBOL"))
+setNodeLabelDirect(cw.eif2, nodes(eifNewGraph), nodeData(eifNewGraph, nodes(eifNewGraph), "SYMBOL"))
 redraw(cw.eif2)
 setNodeColorDirect(cw.eif2, eifrabNodes, "#F5C46F")
 redraw(cw.eif2)
@@ -322,9 +321,17 @@ setDefaultNodeSize(cw.eif2, 60)
 redraw(cw.eif2)
 setDefaultEdgeColor(cw.eif2, "#CCCCCC")
 redraw(cw.eif2)
-setDefaultNodeFontSize(cw.eif2, "20")
+setDefaultNodeFontSize(cw.eif2, "16")
 redraw(cw.eif2)
 ```
+
+Export tabular data
+
+```{r exportEIFData}
+write.table(eifInfo, file="/mlab/data/rmflight/Documents/projects/work/black_lab//eif4brab8a/eifInfo.tab", row.names=FALSE, col.names=TRUE, sep="\t")
+write.table(eifNewInfo, file="/mlab/data/rmflight/Documents/projects/work/black_lab//eif4brab8a/eifInfoCollapsed.tab", row.names=FALSE, col.names=TRUE, sep="\t")
+```
+
 
 
 ## Visualize
