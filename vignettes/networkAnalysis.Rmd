@@ -112,7 +112,7 @@ stringData <- stringData[passesScore,]
 Now that we have possible interactions, we need to filter them down to links that involve our actual proteins of interest, and any links between those proteins.
 
 ```{r getUsefulLinks}
-rnd1 <- which((stringData$protein1 %in% outMRNA_mapped$STRING_id) | (stringData$protein2 %in% outMRNA_mapped$STRING_id))
+rnd1 <- which((stringData$protein1 %in% outMRNA_mapped$protein_id) | (stringData$protein2 %in% outMRNA_mapped$protein_id))
 
 useNodes <- unique(c(stringData$protein1[rnd1], stringData$protein2[rnd1]))
 
@@ -125,7 +125,7 @@ stringEdges <- stringData[useEdges,]
 nrow(stringEdges)
 
 # how many of our genes are actually in the network?
-sum(outMRNA_mapped$STRING_id %in% unique(c(stringEdges$protein1, stringEdges$protein2)))
+sum(outMRNA_mapped$protein_id %in% unique(c(stringEdges$protein1, stringEdges$protein2)))
 ```
 
 Now we should instantiate the network, and start adding information to it.
