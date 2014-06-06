@@ -282,16 +282,29 @@ eifrabNewGraph <- initEdgeAttribute(eifrabNewGraph, "weight", "numeric", 1)
 Lets visualize this again!
 
 ```{r newEIFRAB}
+eifrabNodes <- eifrabNewData$nodeID[eifrabNewData$SYMBOL %in% c("EIF4B", "RAB8A")]
+eifrabNotNodes <- grep("^9606", eifrabNewData$nodeID, value=TRUE)
+eifrabNotNodes <- eifrabNotNodes[!(eifrabNotNodes %in% eifrabNodes)]
+
 cw.eif2 <- CytoscapeWindow("eif2", eifrabNewGraph)
 displayGraph(cw.eif2)
-layoutNetwork(cw.eif2, "fruchterman-rheingold")
+setLayoutProperties(cw.eif2, layout.name="kamada-kawai-noweight", list(anticollisionStrength=4000, rest_length=100))
+layoutNetwork(cw.eif2, "kamada-kawai-noweight")
 redraw(cw.eif2)
-setNodeLabelDirect(cw.eifrab, eifrabSubNodes, nodeData(eifrabGraph, eifrabSubNodes, "SYMBOL"))
-redraw(cw.eifrab)
-setNodeColorDirect(cw.eifrab, eifrabNodes, "#F5C46F")
-redraw(cw.eifrab)
-setNodeColorDirect(cw.eifrab, eifrabSubNodes[!(eifrabSubNodes %in% eifrabNodes)], "#6FA0F5")
-redraw(cw.eifrab)
+setNodeLabelDirect(cw.eif2, nodes(eifrabNewGraph), nodeData(eifrabNewGraph, nodes(eifrabNewGraph), "SYMBOL"))
+redraw(cw.eif2)
+setNodeColorDirect(cw.eif2, eifrabNodes, "#F5C46F")
+redraw(cw.eif2)
+setNodeColorDirect(cw.eif2, eifrabNotNodes, "#6FA0F5")
+redraw(cw.eif2)
+setDefaultBackgroundColor(cw.eif2, "#FFFFFF")
+redraw(cw.eif2)
+setDefaultNodeSize(cw.eif2, 60)
+redraw(cw.eif2)
+setDefaultEdgeColor(cw.eif2, "#CCCCCC")
+redraw(cw.eif2)
+setDefaultNodeFontSize(cw.eif2, "20")
+redraw(cw.eif2)
 ```
 
 
