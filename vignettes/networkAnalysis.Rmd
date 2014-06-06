@@ -144,10 +144,10 @@ nodeInfo <- select(org.Hs.eg.db, trimNodes, c("SYMBOL", "GENENAME", "ENTREZID"),
 nodeInfo$nodeID <- paste("9606.", nodeInfo$ENSEMBLPROT, sep="")
 
 # this last section is to make sure we are using the info from the affy chip for those nodes we already had.
-hasNodes <- nodeInfo$nodeID %in% outMRNA_mapped$STRING_id
+hasNodes <- nodeInfo$nodeID %in% outMRNA_mapped$protein_id
 nodeInfo <- nodeInfo[!hasNodes,]
 
-outMRNA_mapped$nodeID <- outMRNA_mapped$STRING_id
+outMRNA_mapped$nodeID <- outMRNA_mapped$protein_id
 nodeInfo <- rbind(nodeInfo, outMRNA_mapped[,c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "nodeID")])
 nodeInfo <- nodeInfo[(nodeInfo$nodeID %in% nodes(stringGraph)),]
 ```
@@ -167,6 +167,70 @@ for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "fromChip")){
   nodeData(stringGraph, nodeInfo$nodeID, iName) <- nodeInfo[,iName]
 }
 ```
+
+
+### EIF4B / RAB8A
+
+For a student application, trim down to just those things that connect to EIF4B / RAB8A.
+
+```{r eifrab8}
+eifrabInfo <- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% c("EIF4B", "RAB8A")),]
+
+eifrabNodes <- eifrabInfo$nodeID
+
+eifrabAttached <- adj(stringGraph, eifrabNodes)
+eifrabSubNodes <- unique(c(eifrabNodes, unlist(eifrabAttached)))
+eifrabGraph <- subGraph(eifrabSubNodes, stringGraph)
+eifrabGraph
+```
+
+Visualize!
+
+```{r visEIFRAB}
+cw.eifrab <- CytoscapeWindow("eifrab", eifrabGraph)
+displayGraph(cw.eifrab)
+layoutNetwork(cw.eifrab, "fruchterman-rheingold")
+setNodeLabelDirect(cw.eifrab, eifrabSubNodes, nodeData(eifrabGraph, eifrabSubNodes, "SYMBOL"))
+redraw(cw.eifrab)
+setNodeColorDirect(cw.eifrab, eifrabNodes, "#F5C46F")
+redraw(cw.eifrab)
+setNodeColorDirect(cw.eifrab, eifrabSubNodes[!(eifrabSubNodes %in% eifrabNodes)], "#6FA0F5")
+redraw(cw.eifrab)
+setEdgeColorDirect(cw.eifrab, as.character(cy2.edge.names(cw.eifrab@graph)), "#CCCCCC")
+redraw(cw.eifrab)
+setDefaultBackgroundColor(cw.eifrab, "#FFFFFF")
+redraw(cw.eifrab)
+```
+
+```{r eifrabNodeData}
+eifrabNodeData <- nodeInfo[(nodeInfo$nodeID %in% nodes(eifrabGraph)),]
+eifrabNodeData[order(eifrabNodeData$GENENAME),]
+```
+
+
+Looking at many of these, they appear to be part of complexes (EIF3, CNOT, EIF4A, EXOC, RPL, RPS, SNORD, SNORA). How many individual nodes would we remove if we collapsed these to single representatives? We will also remove anything that has "NA" for it's other identifiers.
+
+```{r collapseNodes}
+collapseSearch <- c("CNOT", "EIF3", "EXOC", "RPL", "RPS", "SNORD", "SNORA")
+
+eifrabNodeData$collapseID <- eifrabNodeData$SYMBOL
+eifrabNodeData <- eifrabNodeData[!(is.na(eifrabNodeData$SYMBOL)),]
+
+for (checkCollapse in collapseSearch){
+  whichCollapse <- grep(checkCollapse, eifrabNodeData$SYMBOL)
+  eifrabNodeData$collapseID[whichCollapse] <- checkCollapse
+}
+
+length(unique(eifrabNodeData$collapseID))
+```
+
+So we've gone from a total of `r nrow(eifrabNodeData)` to `r length(unique(eifrabNodeData$collapseID))` nodes. Let's modify the graph and see if that improves matters.
+
+```{r}
+
+```
+
+
 
 Now lets see what we can see.
 
