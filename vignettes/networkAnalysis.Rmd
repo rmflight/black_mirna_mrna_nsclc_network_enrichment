@@ -263,7 +263,39 @@ eifrabNew <- eifrabNew[keepNodes, keepNodes]
 eifrabNewGraph <- as(eifrabNew, "graphNEL")
 ```
 
+Now we need to encode the data for it so we know what the nodes are again when we view them in a graph.
 
+```{r eifrabData}
+eifrabNewData <- eifrabNodeData[(eifrabNodeData$nodeID %in% nodes(eifrabNewGraph)),]
+collapseData <- data.frame(ENSEMBLPROT=collapseSearch, SYMBOL=collapseSearch, GENENAME=collapseSearch, ENTREZID=collapseSearch, nodeID=collapseSearch, fromChip=FALSE, collapseID=collapseSearch, stringsAsFactors=FALSE)
+
+eifrabNewData <- rbind(eifrabNewData, collapseData)
+
+for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "fromChip")){
+  nodeDataDefaults(eifrabNewGraph, iName) <- ""
+  attr(nodeDataDefaults(eifrabNewGraph, iName), "class") <- "STRING"
+  nodeData(eifrabNewGraph, eifrabNewData$nodeID, iName) <- eifrabNewData[,iName]
+}
+eifrabNewGraph <- initEdgeAttribute(eifrabNewGraph, "weight", "numeric", 1)
+```
+
+Lets visualize this again!
+
+```{r newEIFRAB}
+cw.eif2 <- CytoscapeWindow("eif2", eifrabNewGraph)
+displayGraph(cw.eif2)
+layoutNetwork(cw.eif2, "fruchterman-rheingold")
+redraw(cw.eif2)
+setNodeLabelDirect(cw.eifrab, eifrabSubNodes, nodeData(eifrabGraph, eifrabSubNodes, "SYMBOL"))
+redraw(cw.eifrab)
+setNodeColorDirect(cw.eifrab, eifrabNodes, "#F5C46F")
+redraw(cw.eifrab)
+setNodeColorDirect(cw.eifrab, eifrabSubNodes[!(eifrabSubNodes %in% eifrabNodes)], "#6FA0F5")
+redraw(cw.eifrab)
+```
+
+
+## Visualize
 
 Now lets see what we can see.
 
