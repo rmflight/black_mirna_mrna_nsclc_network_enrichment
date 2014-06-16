@@ -1,0 +1,222 @@
+# Network Analysis
+
+```{r setup}
+library(pBlackNetworkAnalysis)
+library(STRINGdb)
+library(graph)
+library(igraph)
+library(RCytoscape)
+library(org.Hs.eg.db)
+library(hgu133plus2.db)
+library(categoryCompare)
+library(GO.db)
+library(xtable)
+library(KEGGREST)
+library(KEGGgraph)
+
+stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
+```
+
+
+## STRING PPI
+
+We are doing a programmatic query of STRING because the website is rather limiting in how much data it will show you. So even though we will initially only look at direct interactions, we may get more information than is available off the website, as the website initially limits you to 10 interactions unless you explicitly ask it for more.
+
+### Translate to STRING ID
+
+We have downloaded the STRING ID to alias file previously, and we will use our own function to do translation because we get off by 1 errors for the genes we started with.
+
+```{r getSTRINGID}
+outMRNA <- data.frame(SYMBOL=c("EIF4B", "RAB8A"), stringsAsFactors=FALSE)
+stringIDFile <- file.path(stringFileLoc, "9606__protein_aliases_tf.tsv.gz")
+outMRNA_mapped <- map2STRING(outMRNA, "SYMBOL", stringIDFile)
+outMRNA_mapped$ENSEMBLPROT <- substring(outMRNA_mapped$protein_id, 6, 20)
+```
+
+We've previously downloaded the STRINGdb files for human. Let's load them up and parse them down.
+
+```{r stringData}
+stringData <- read.table(file.path(stringFileLoc, "9606.protein.links.detailed.v9.1.txt"), header=TRUE, sep=" ", stringsAsFactors=FALSE)
+head(stringData)
+```
+
+We will use the cutoff for `combined_score` of 400 (the default in STRING itself), and then filter down to just those things with co-expression, experimental or database evidence.
+
+```{r filterData}
+combScore <- 400
+minScores <- c(experimental=400, database=400, coexpression=400)
+passesScore <- rep(FALSE, nrow(stringData))
+invisible(lapply(names(minScores), function(evidence){
+  passesScore <<- passesScore | (stringData[, evidence] >= minScores[evidence])
+}))
+passesScore <- passesScore & (stringData$combined_score >= combScore)
+head(stringData[passesScore,])
+```
+
+```{r trueFilter}
+stringData <- stringData[passesScore,]
+```
+
+Now that we have possible interactions, we need to filter them down to links that involve our actual proteins of interest, and any links between those proteins.
+
+Find the neighborhood of our genes.
+
+```{r eifrab}
+eifrabNodes <- outMRNA_mapped$protein_id
+eif1 <- which((stringData$protein1 %in% eifrabNodes) | (stringData$protein2 %in% eifrabNodes))
+
+useNodes <- unique(c(stringData$protein1[eif1], stringData$protein2[eif1]))
+
+hasP1 <- stringData$protein1 %in% useNodes
+hasP2 <- stringData$protein2 %in% useNodes
+
+useEdges <- hasP1 & hasP2
+
+eifEdges <- stringData[useEdges,]
+nrow(eifEdges)
+
+eifNodes <- unique(c(eifEdges$protein1, eifEdges$protein2))
+eifGraph <- graphNEL(nodes=eifNodes, edgemode="directed")
+eifGraph <- addEdge(eifEdges$protein1, eifEdges$protein2, eifGraph)
+
+trimNodes <- substring(eifNodes, 6, 20)
+eifInfo <- select(org.Hs.eg.db, trimNodes, c("SYMBOL", "GENENAME", "ENTREZID"), keytype="ENSEMBLPROT")
+eifInfo$nodeID <- paste("9606.", eifInfo$ENSEMBLPROT, sep="")
+
+for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID")){
+  nodeDataDefaults(eifGraph, iName) <- ""
+  attr(nodeDataDefaults(eifGraph, iName), "class") <- "STRING"
+  nodeData(eifGraph, eifInfo$nodeID, iName) <- eifInfo[,iName]
+}
+
+eifrabSubNodes <- eifNodes[!(eifNodes %in% eifrabNodes)]
+```
+
+
+Visualize!
+  
+```{r visEIFRAB}
+cw.eifrab <- CytoscapeWindow("eifrab", eifGraph)
+displayGraph(cw.eifrab)
+layoutNetwork(cw.eifrab, "fruchterman-rheingold")
+setNodeLabelDirect(cw.eifrab, eifrabSubNodes, nodeData(eifGraph, eifrabSubNodes, "SYMBOL"))
+redraw(cw.eifrab)
+setNodeColorDirect(cw.eifrab, eifrabNodes, "#F5C46F")
+redraw(cw.eifrab)
+setNodeColorDirect(cw.eifrab, eifrabSubNodes[!(eifrabSubNodes %in% eifrabNodes)], "#6FA0F5")
+redraw(cw.eifrab)
+setDefaultEdgeColor(cw.eifrab, "#CCCCCC")
+redraw(cw.eifrab)
+setDefaultBackgroundColor(cw.eifrab, "#FFFFFF")
+redraw(cw.eifrab)
+```
+
+
+```{r eifInfo}
+eifInfo[order(eifInfo$SYMBOL),]
+```
+
+
+Looking at many of these, they appear to be part of complexes (EIF3, CNOT, EXOC, RPL, RPS, SNORD, SNORA). How many individual nodes would we remove if we collapsed these to single representatives? We will also remove anything that has "NA" for it's other identifiers.
+
+```{r collapseNodes}
+dupEntry <- duplicated(eifInfo$nodeID)
+eifInfo <- eifInfo[!dupEntry,]
+collapseSearch <- c("CNOT", "EIF3", "EXOC", "RPL", "RPS")
+
+eifInfo$collapseID <- eifInfo$SYMBOL
+eifInfo <- eifInfo[!(is.na(eifInfo$SYMBOL)),]
+
+for (checkCollapse in collapseSearch){
+  whichCollapse <- grep(checkCollapse, eifInfo$SYMBOL)
+  eifInfo$collapseID[whichCollapse] <- checkCollapse
+}
+
+length(unique(eifInfo$collapseID))
+```
+
+So we've gone from a total of `r nrow(eifInfo)` to `r length(unique(eifInfo$collapseID))` nodes. Let's modify the graph and see if that improves matters.
+
+```{r collapseGraph}
+edgemode(eifGraph) <- "undirected"
+
+eifMatrix <- as(eifGraph, "matrix")
+
+eifNew <- eifMatrix
+eifNew <- rbind(eifNew, matrix(0, nrow=5, ncol=ncol(eifNew)))
+eifNew <- cbind(eifNew, matrix(0, nrow=nrow(eifNew), ncol=5))
+rownames(eifNew) <- c(rownames(eifMatrix), collapseSearch)
+colnames(eifNew) <- c(colnames(eifMatrix), collapseSearch)
+
+for (iCollapse in collapseSearch){
+  useID <- eifInfo$nodeID[(eifInfo$collapseID %in% iCollapse)]
+
+  for (inID in useID){
+    hasRow <- rownames(eifNew)[eifNew[,inID] == 1]
+    eifNew[hasRow, iCollapse] <- 1
+    
+    hasCol <- colnames(eifNew)[eifNew[inID,] == 1]
+    eifNew[iCollapse, hasCol] <- 1
+  }
+}
+
+for (iCollapse in collapseSearch){
+  eifNew[iCollapse, iCollapse] <- 0
+}
+
+keepNodes <- c(eifInfo$nodeID[!(eifInfo$collapseID %in% collapseSearch)], collapseSearch)
+eifNew <- eifNew[keepNodes, keepNodes]
+
+eifNewGraph <- as(eifNew, "graphNEL")
+```
+
+Now we need to encode the data for it so we know what the nodes are again when we view them in a graph.
+
+```{r eifrabData}
+eifNewInfo <- eifInfo[(eifInfo$nodeID %in% nodes(eifNewGraph)),]
+collapseData <- data.frame(ENSEMBLPROT=collapseSearch, SYMBOL=collapseSearch, GENENAME=collapseSearch, ENTREZID=collapseSearch, nodeID=collapseSearch, collapseID=collapseSearch, stringsAsFactors=FALSE)
+
+eifNewInfo <- rbind(eifNewInfo, collapseData)
+
+for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID")){
+  nodeDataDefaults(eifNewGraph, iName) <- ""
+  attr(nodeDataDefaults(eifNewGraph, iName), "class") <- "STRING"
+  nodeData(eifNewGraph, eifNewInfo$nodeID, iName) <- eifNewInfo[,iName]
+}
+eifNewGraph <- initEdgeAttribute(eifNewGraph, "weight", "numeric", 1)
+```
+
+Lets visualize this again!
+
+```{r newEIFRAB}
+eifrabNodes <- eifNewInfo$nodeID[eifNewInfo$SYMBOL %in% c("EIF4B", "RAB8A")]
+eifrabNotNodes <- grep("^9606", eifNewInfo$nodeID, value=TRUE)
+eifrabNotNodes <- eifrabNotNodes[!(eifrabNotNodes %in% eifrabNodes)]
+
+cw.eif2 <- CytoscapeWindow("eif2", eifNewGraph)
+displayGraph(cw.eif2)
+setLayoutProperties(cw.eif2, layout.name="kamada-kawai-noweight", list(anticollisionStrength=4000, rest_length=100))
+layoutNetwork(cw.eif2, "kamada-kawai-noweight")
+redraw(cw.eif2)
+setNodeLabelDirect(cw.eif2, nodes(eifNewGraph), nodeData(eifNewGraph, nodes(eifNewGraph), "SYMBOL"))
+redraw(cw.eif2)
+setNodeColorDirect(cw.eif2, eifrabNodes, "#F5C46F")
+redraw(cw.eif2)
+setNodeColorDirect(cw.eif2, eifrabNotNodes, "#6FA0F5")
+redraw(cw.eif2)
+setDefaultBackgroundColor(cw.eif2, "#FFFFFF")
+redraw(cw.eif2)
+setDefaultNodeSize(cw.eif2, 60)
+redraw(cw.eif2)
+setDefaultEdgeColor(cw.eif2, "#CCCCCC")
+redraw(cw.eif2)
+setDefaultNodeFontSize(cw.eif2, "16")
+redraw(cw.eif2)
+```
+
+Export tabular data
+
+```{r exportEIFData}
+write.table(eifInfo, file="/mlab/data/rmflight/Documents/projects/work/black_lab//eif4brab8a/eifInfo.tab", row.names=FALSE, col.names=TRUE, sep="\t")
+write.table(eifNewInfo, file="/mlab/data/rmflight/Documents/projects/work/black_lab//eif4brab8a/eifInfoCollapsed.tab", row.names=FALSE, col.names=TRUE, sep="\t")
+```
