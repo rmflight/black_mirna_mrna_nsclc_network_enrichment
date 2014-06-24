@@ -18,6 +18,10 @@ stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
 ```
 
 
+## Summary paragraph for publication
+
+From the miRNA-Affymetrix probeset associations, those probesets that had interactions with five or more miRNA's were kept for further interrogation.  STRING database files for human were downloaded for further processing. The Bioconductor (v2.14) package for Affymetrix(R) HGU133-plus2 chips (hgu133plus2.db v2.10.1) was used to translate Affymetrix(R) probeset identifiers to gene identifiers (symbols, gene names, Entrez IDs) in R (v3.0.1). The gene symbols were translated to STRING database IDs using the STRING protein aliases mapping file. The full set of STRING protein-protein interactions (PPIs) were filtered to those with a combined score greater than 400, as well as individual scores greater than 400 in any one of the "experimental", "database", and "coexpression" evidences. From this subset of PPIs, the interactions with the original set of genes and their interactors (essentially those genes within two hops or interactions) were extracted from the PPI database. In each PPI, only a record that there was an interaction between the two proteins was kept with no information on the number of evidences or the score of the interaction. STRING protein IDs were translated to gene IDs using the human database (org.Hs.eg.db v2.10.1) with Ensembl Protein (ENSEMBLPROT) as the query key.
+
 # First question
 
 * Of the genes that map to STRING, which ones map to AKT(??) and EGFR pathway? 
