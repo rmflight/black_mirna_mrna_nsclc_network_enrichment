@@ -14,7 +14,7 @@ library(xtable)
 library(KEGGREST)
 library(KEGGgraph)
 
-stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
+stringFileLoc <- "~/Documents/stringdatabase_91/"
 ```
 
 
@@ -27,7 +27,8 @@ We are doing a programmatic query of STRING because the website is rather limiti
 We have downloaded the STRING ID to alias file previously, and we will use our own function to do translation because we get off by 1 errors for the genes we started with.
 
 ```{r getSTRINGID}
-outMRNA <- data.frame(SYMBOL=c("EIF4B", "RAB8A"), stringsAsFactors=FALSE)
+inputProteins <- c("EIF4B", "RAB8A", "PPP1CB")
+outMRNA <- data.frame(SYMBOL=inputProteins, stringsAsFactors=FALSE)
 stringIDFile <- file.path(stringFileLoc, "9606__protein_aliases_tf.tsv.gz")
 outMRNA_mapped <- map2STRING(outMRNA, "SYMBOL", stringIDFile)
 outMRNA_mapped$ENSEMBLPROT <- substring(outMRNA_mapped$protein_id, 6, 20)
@@ -122,7 +123,7 @@ Looking at many of these, they appear to be part of complexes (EIF3, CNOT, EXOC,
 ```{r collapseNodes}
 dupEntry <- duplicated(eifInfo$nodeID)
 eifInfo <- eifInfo[!dupEntry,]
-collapseSearch <- c("CNOT", "EIF3", "EXOC", "RPL", "RPS")
+collapseSearch <- c("CNOT", "EIF3", "EXOC", "RPL", "RPS", "PPP1R", "PPP2R", "PPP3", "PPP4")
 
 eifInfo$collapseID <- eifInfo$SYMBOL
 eifInfo <- eifInfo[!(is.na(eifInfo$SYMBOL)),]
@@ -143,8 +144,8 @@ edgemode(eifGraph) <- "undirected"
 eifMatrix <- as(eifGraph, "matrix")
 
 eifNew <- eifMatrix
-eifNew <- rbind(eifNew, matrix(0, nrow=5, ncol=ncol(eifNew)))
-eifNew <- cbind(eifNew, matrix(0, nrow=nrow(eifNew), ncol=5))
+eifNew <- rbind(eifNew, matrix(0, nrow=length(collapseSearch), ncol=ncol(eifNew)))
+eifNew <- cbind(eifNew, matrix(0, nrow=nrow(eifNew), ncol=length(collapseSearch)))
 rownames(eifNew) <- c(rownames(eifMatrix), collapseSearch)
 colnames(eifNew) <- c(colnames(eifMatrix), collapseSearch)
 
@@ -189,7 +190,7 @@ eifNewGraph <- initEdgeAttribute(eifNewGraph, "weight", "numeric", 1)
 Lets visualize this again!
 
 ```{r newEIFRAB}
-eifrabNodes <- eifNewInfo$nodeID[eifNewInfo$SYMBOL %in% c("EIF4B", "RAB8A")]
+eifrabNodes <- eifNewInfo$nodeID[eifNewInfo$SYMBOL %in% inputProteins]
 eifrabNotNodes <- grep("^9606", eifNewInfo$nodeID, value=TRUE)
 eifrabNotNodes <- eifrabNotNodes[!(eifrabNotNodes %in% eifrabNodes)]
 
