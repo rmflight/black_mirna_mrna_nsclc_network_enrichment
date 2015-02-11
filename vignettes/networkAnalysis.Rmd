@@ -13,8 +13,9 @@ library(GO.db)
 library(xtable)
 library(KEGGREST)
 library(KEGGgraph)
+library(KEGG.db)
 
-stringFileLoc <- "/mlab/data/rmflight/Documents/stringdatabase_91/"
+stringFileLoc <- "/home/rmflight/Documents/stringdatabase_91/"
 ```
 
 
@@ -349,6 +350,13 @@ hasAKT <- sapply(allGraphs, function(x){
 ```
 
 Yes indeed, there are `r sum(hasAKT)` pathways that have the AKT genes in them directly. 
+
+```{r pathwayID_to_description}
+pathwayID <- substring(names(allGraphs), 4)
+keggid2keggname <- as.list(KEGGPATHID2NAME)
+keggid2keggname[pathwayID]
+```
+
 
 Can we merge and plot the pathways?
 
