@@ -2,18 +2,11 @@
 
 ```{r setup}
 library(pBlackNetworkAnalysis)
-library(STRINGdb)
 library(graph)
-library(igraph)
-library(RCytoscape)
 library(org.Hs.eg.db)
 library(hgu133plus2.db)
-library(categoryCompare)
 library(GO.db)
 library(xtable)
-library(KEGGREST)
-library(KEGGgraph)
-library(KEGG.db)
 
 stringFileLoc <- "/home/rmflight/Documents/stringdatabase_91/"
 ```
