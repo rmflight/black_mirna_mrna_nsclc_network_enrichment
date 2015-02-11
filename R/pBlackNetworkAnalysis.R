@@ -19,6 +19,26 @@ communityAsList <- function(commObject, decreasing=TRUE){
 #' @details contains set of KGML xml data that P Blacks genes were annotated to as of June 4, 2014
 NULL
 
+#' @name kegg_annotation.RData
+#' @title kegg_annotation.RData
+#' @docType data
+#' @source downloaded using KEGGREST on Feb 11, 2015
+#' @details list with annotation contains the gene - pathway information, and pathway descriptions
+#' @example
+#' \dontrun{
+#' library(KEGGREST)
+#' hsa_pathways <- keggLink("hsa", "pathway")
+#' names(hsa_pathways) <- substring(names(hsa_pathways), 6)
+#' hsa_pathways <- substring(hsa_pathways, 5)
+#' kegg_annotation <- list(annotation = split(hsa_pathways, names(hsa_pathways)))
+#' kegg_annotation$annotation <- lapply(kegg_annotation$annotation, function(x){names(x) <- NULL; x})
+#' 
+#' kegg_paths <- names(kegg_annotation$annotation)
+#' kegg_desc <- keggList("pathway", "hsa")
+#' names(kegg_desc) <- substring(names(kegg_desc), 6)
+#' kegg_annotation$description <- kegg_desc[names(kegg_annotation$annotation)]
+#' }
+
 #' map to STRING
 #' 
 #' @param query what you want to match on
