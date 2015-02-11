@@ -93,7 +93,7 @@ Visualize!
 cw.eifrab <- CytoscapeWindow("eifrab", eifGraph)
 displayGraph(cw.eifrab)
 layoutNetwork(cw.eifrab, "fruchterman-rheingold")
-setNodeLabelDirect(cw.eifrab, eifrabSubNodes, nodeData(eifGraph, eifrabSubNodes, "SYMBOL"))
+setNodeLabelDirect(cw.eifrab, eifNodes, nodeData(eifGraph, eifNodes, "SYMBOL"))
 redraw(cw.eifrab)
 setNodeColorDirect(cw.eifrab, eifrabNodes, "#F5C46F")
 redraw(cw.eifrab)
@@ -211,6 +211,6 @@ redraw(cw.eif2)
 Export tabular data
 
 ```{r exportEIFData}
-write.table(eifInfo, file="/mlab/data/rmflight/Documents/projects/work/black_lab//eif4brab8a/eifInfo.tab", row.names=FALSE, col.names=TRUE, sep="\t")
-write.table(eifNewInfo, file="/mlab/data/rmflight/Documents/projects/work/black_lab//eif4brab8a/eifInfoCollapsed.tab", row.names=FALSE, col.names=TRUE, sep="\t")
+write.table(eifInfo, file="~/Projects/work/black_lab//eif4brab8a/eifInfo.tab", row.names=FALSE, col.names=TRUE, sep="\t")
+write.table(eifNewInfo, file="~/Projects/work/black_lab//eif4brab8a/eifInfoCollapsed.tab", row.names=FALSE, col.names=TRUE, sep="\t")
 ```
