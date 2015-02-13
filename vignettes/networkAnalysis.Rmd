@@ -88,6 +88,10 @@ We have downloaded the STRING ID to alias file previously, and we will use our o
 stringIDFile <- file.path(stringFileLoc, "9606__protein_aliases_tf.tsv.gz")
 outMRNA_mapped <- map2STRING(outMRNA, "SYMBOL", stringIDFile)
 outMRNA_mapped$ENSEMBLPROT <- substring(outMRNA_mapped$protein_id, 6, 20)
+
+# genes with larger expression values
+seed_genes <- c("CSAG3", "MTRF1", "MAPK1IP1L", "EIF4B", "RAB8A", "KLK8", "PRKX", "PPP1CB")
+outMRNA_mapped <- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% seed_genes),]
 ```
 
 We've previously downloaded the STRINGdb files for human. Let's load them up and parse them down.
