@@ -36,8 +36,7 @@ mRNA and miRNA from NSCLC cell lines with differential response to erolotinib (E
 After reading in the data, what are our options?
 
 * Use *STRINGdb* to get PPI (definite)
-* Use *reactomedb* to get pathway membership (and consider co-occurence in pathway as an edge)
-* Use *KEGGREST* and *KEGGGraph* to get pathway links between genes
+* Look for GO and KEGG pathway enrichment in the PPI network compared to all of STRING
 
 stringdb - http://www.bioconductor.org/packages/release/bioc/vignettes/STRINGdb/inst/doc/STRINGdb.pdf
 reactomedb
@@ -133,6 +132,74 @@ nrow(stringEdges)
 # how many of our genes are actually in the network?
 sum(outMRNA_mapped$protein_id %in% unique(c(stringEdges$protein1, stringEdges$protein2)))
 ```
+
+## Gene Ontology and Pathway Enrichment
+
+### Gene Ontology
+
+First we will take **all** of the genes that had STRING interactions and treat them as our *interesting* group, and do Gene Ontology (GO) enrichment with respect to the set of genes that have interactions >= 400.
+
+To do this, we first generate an Ensembl protein to Entrez mapping for use in this and the KEGG pathway enrichment.
+
+```{r ensemblp_to_entrez}
+library(GO.db)
+all_proteins <- substring(unique(c(stringData$protein1, stringData$protein2)), 6)
+
+protein_entrez <- select(org.Hs.eg.db, all_proteins, "ENTREZID", "ENSEMBLPROT")
+protein_entrez <- protein_entrez[!(is.na(protein_entrez$ENTREZID)),]
+
+gene_universe <- unique(protein_entrez$ENTREZID)
+ensembl_diff <- substring(unique(c(stringEdges$protein1, stringEdges$protein2)), 6)
+gene_diff <- unique(protein_entrez$ENTREZID[(protein_entrez$ENSEMBLPROT %in% ensembl_diff)])
+
+gene_to_go <- select(org.Hs.eg.db, gene_universe, c("GOALL", "ONTOLOGYALL"), "ENTREZID")
+gene_to_go <- gene_to_go[(gene_to_go$ONTOLOGYALL %in% "BP"), ]
+
+go_annotation <- split(gene_to_go$ENTREZID, gene_to_go$GOALL)
+go_annotation <- lapply(go_annotation, unique)
+
+go_description <- Term(names(go_annotation))
+```
+
+Now set up the annotation for enrichment calculations
+
+```{r go_enrichment}
+go_annotation <- new("annotation",
+                     annotation_to_feature = go_annotation,
+                     description = go_description)
+
+go_hypergeom <- new("hypergeom_features",
+                    significant = gene_diff,
+                    universe = gene_universe,
+                    annotation = go_annotation)
+
+sig_go_enrichment <- hypergeometric_feature(go_hypergeom)
+
+sig_go_table <- sig_go_enrichment@annotation@stats
+sig_go_table$description <- go_description[rownames(sig_go_table)]
+```
+
+Hmmm, hard to interpret. Let's try KEGG!
+
+### KEGG Pathways
+
+We previously got the gene to kegg pathway mapping data, lets do some enrichment!
+
+```{r kegg_enrichment}
+data(kegg_annotation)
+kegg_annotation <- new("annotation",
+                       annotation_to_feature = kegg_annotation$annotation,
+                       description = kegg_annotation$description)
+kegg_hypergeom <- new("hypergeom_features",
+                      significant = gene_diff,
+                      universe = gene_universe,
+                      annotation = kegg_annotation)
+
+sig_kegg_enrichment <- hypergeometric_feature(kegg_hypergeom)
+sig_kegg_table <- sig_kegg_enrichment@annotation@stats
+sig_kegg_table$description <- kegg_annotation@description[rownames(sig_kegg_table)]
+```
+
 
 Now we should instantiate the network, and start adding information to it.
 
@@ -263,97 +330,5 @@ nodeComm1$link2AKT[nodeComm1$nodeID %in% aktLink2] <- 2
 
 ```{r printComm1AKT, echo=FALSE, results='asis'}
 print(xtable(nodeComm1), type="html", html.table.attributes='style = "border-spacing:20px 5x;"', include.rownames=FALSE)
-```
-
-### Community Characterization
-
-Can we characterize the three biggest communities using the Gene Ontology?
-
-```{r setUpLists}
-gUniverse <- mappedkeys(org.Hs.egENSEMBLPROT)
-wtLists <- lapply(wtAll[seq(1,3)], function(inComm){
-  commGenes <- unique(nodeInfo$ENTREZID[nodeInfo$nodeID %in% inComm])
-  list(genes=commGenes, universe=gUniverse, annotation="org.Hs.eg.db")
-})
-names(wtLists) <- paste("C", seq(1,3), sep="")
-wtLists <- new("ccGeneList", wtLists, ccType=c("BP", "MF", "CC"))
-```
-
-```{r runEnrichment}
-wtEnrich <- ccEnrich(wtLists)
-pvalueCutoff(wtEnrich$BP) <- 0.01
-wtOpts <- new("ccOptions", listNames=names(wtLists))
-wtCompare <- ccCompare(wtEnrich, wtOpts)
-```
-
-```{r visCompare}
-wtCompare$BP <- breakEdges(wtCompare$BP, 0.8)
-wtBP <- ccOutCyt(wtCompare$BP, wtOpts, postText="wtBP")
-breakEdges(wtBP, 1)
-
-wtMF <- ccOutCyt(wtCompare$MF, wtOpts)
-breakEdges(wtMF, 0.8)
-
-wtCC <- ccOutCyt(wtCompare$CC, wtOpts)
-breakEdges(wtCC, 0.8)
-```
-
-This doesn't seem to be helping us a whole lot. 
-
-### Interactions via STRINGDB Summary
-
-There are a lot of genes that interact with a few of the measured genes that also interact with AKT1 and AKT3. 
-
-
-## KEGG Pathways
-
-Lets query the specific KEGG Pathways that all of our genes are involved in, and then see what else is around that may be interesting.
-
-```{r queryKEGG, eval=FALSE}
-keggGenes <- paste("hsa", outMRNA$ENTREZID, sep=":")
-outMRNAPathways <- keggLink("pathway", keggGenes)
-allPaths <- unique(outMRNAPathways)
-allPaths <- substring(allPaths, 6)
-allKGML <- lapply(allPaths, function(x){
-  keggGet(x, "kgml")
-})
-
-names(allKGML) <- allPaths
-save(allKGML, file="inst/data/allKGML.RData")
-```
-
-```{r parseandExpand}
-data(allKGML)
-allGraphs <- lapply(allKGML, function(x){
-  parseKGML2Graph(x, genesOnly=FALSE, expandGenes=TRUE)
-})
-```
-
-Do any of these involve the AKT1, 2, 3 genes?
-
-```{r AKTGenes}
-aktEntrez <- nodeInfo$ENTREZID[grep("AKT", nodeInfo$SYMBOL)]
-stripHSA <- function(nodeNames){
-  startHSA <- grep("^hsa", nodeNames, value=TRUE)
-  substring(startHSA, 5)
-}
-hasAKT <- sapply(allGraphs, function(x){
-  sum(aktEntrez %in% stripHSA(nodes(x))) > 0
-})
-```
-
-Yes indeed, there are `r sum(hasAKT)` pathways that have the AKT genes in them directly. 
-
-```{r pathwayID_to_description}
-pathwayID <- substring(names(allGraphs), 4)
-keggid2keggname <- as.list(KEGGPATHID2NAME)
-keggid2keggname[pathwayID]
-```
-
-
-Can we merge and plot the pathways?
-
-```{r mergePaths}
-mergePaths <- mergeKEGGgraphs(allGraphs)
 ```
 
