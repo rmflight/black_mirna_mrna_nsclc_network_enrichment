@@ -24,7 +24,7 @@ NULL
 #' @docType data
 #' @source downloaded using KEGGREST on Feb 11, 2015
 #' @details list with annotation contains the gene - pathway information, and pathway descriptions
-#' @example
+#' @examples
 #' \dontrun{
 #' library(KEGGREST)
 #' hsa_pathways <- keggLink("hsa", "pathway")
@@ -92,7 +92,7 @@ setClass("hypergeom_features",
 #' @param hypergeom_features a hypergeometric_features object
 #' @param direction which direction to do the enrichment (over or under)
 #' @export
-#' @return
+#' @return hypergeometric_Feature
 #' 
 hypergeometric_feature <- function(hypergeom_features, direction = "over"){
   
@@ -149,4 +149,33 @@ hypergeometric_feature <- function(hypergeom_features, direction = "over"){
   
   hypergeom_features
   
+}
+
+#' do hypergeometric test
+#' 
+#' does a hypergeometric enrichment test
+#' 
+#' @param num_white number of white balls in urn
+#' @param num_black number of black balls in urn
+#' @param num_drawn number of balls taken from urn
+#' @param num_white_drawn number of white balls taken from urn
+#' @param direction which direction is the test
+#' 
+#' @export
+#' @return list
+hypergeometric_basic <- function(num_white, num_black, num_drawn, num_white_drawn, direction = "over"){
+  n_2_1 <- num_white - num_white_drawn
+  n_1_2 <- num_drawn - num_white_drawn
+  n_2_2 <- num_black - n_1_2
+  
+  odds_ratio <- (num_white_drawn * n_2_2) / (n_1_2 * n_2_1)
+  
+  expected <- ((num_white_drawn + n_1_2) * (num_white_drawn + n_2_1)) / (num_white_drawn + n_1_2 + n_2_1 + n_2_2)
+  
+  p_values <- switch(direction,
+                     over =  phyper(num_white_drawn - 1L, num_white, num_black, num_drawn, lower.tail = FALSE),
+                     under = phyper(num_white_drawn, num_white, num_black, num_drawn, lower.tail = TRUE)
+  )
+  
+  list(p = p_values, odds = odds_ratio, expected = expected)
 }
