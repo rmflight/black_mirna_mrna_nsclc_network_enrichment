@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Network Enrichment</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{miRNA-mRNA NSCLC Network Enrichment}
+%\VignetteDepends{graph, org.Hs.eg.db, hgu133plus2.db, GO.db, xtable}
+-->
+
+<h1>Network Enrichment</h1>
+
+<pre><code class="r">library(black.miRNAmRNA.NSCLC.networkEnrichment)
+library(graph)
+library(org.Hs.eg.db)
+library(hgu133plus2.db)
+library(GO.db)
+library(xtable)
+
+packageData &lt;- system.file(&quot;extdata&quot;, package = &quot;black.miRNAmRNA.NSCLC.networkEnrichment&quot;)
+stringFileLoc &lt;- file.path(packageData, &quot;STRING&quot;)
+inputDataLoc &lt;- file.path(packageData, &quot;input&quot;)
+
+currLoc &lt;- basename(getwd())
+outputLoc &lt;- switch(currLoc,
+                    mirna_mrna_nsclc_network_enrichment = &quot;inst/extdata/output&quot;,
+                    vignettes = &quot;../inst/extdata/output&quot;)
+</code></pre>
+
+<h2>Summary paragraph in publication</h2>
+
+<p>From the miRNA:mRNA associations described above, the Affymetrix probesets that demonstrated interactions with five or more miRNA genes (nfac=2) were retained for further interrogation, regardless of LOOCV results. STRING database v 9.1 (Franceschini et al., 2013) files for human were downloaded for further processing. The Bioconductor  v3.0 package (Gentleman et al., 2004) for Affymetrix&reg; HGU133-plus2 chips (hgu133plus2.db v3.0.0) was used to translate Affymetrix&reg; probeset identifiers to gene identifiers (symbols, gene names, Entrez IDs) in R  v3.1.2 (2014). The gene symbols were translated to STRING database IDs using the STRING protein aliases mapping file. The full set of STRING protein-protein interactions (PPIs) were filtered to those with a combined score greater than 400, as well as individual scores greater than 400 in any one of the &ldquo;experimental&rdquo;, &ldquo;database&rdquo;, and &ldquo;coexpression&rdquo; evidences. From this subset of PPIs, the interactions with the original set of genes and their interactors (those genes within one edge or interaction) were extracted from the PPI database. For each PPI, only a record that there was an interaction between the two proteins was kept with no information on the number of evidences or the score of the interaction. STRING protein IDs were translated to gene IDs using the human database (org.Hs.eg.db v3.0.0) with Ensembl Protein (ENSEMBLPROT) as the query key ( STRING protein identifiers are a combination of species id and Ensembl protein id). STRING protein-protein interaction information was used to understand signaling pathway enrichment using KEGG and Gene Ontology terms (references from below). </p>
+
+<p>KEGG and Gene Ontology enrichment was performed using a hypergeometric test (Boyle et al., 2004, <a href="http://www.ncbi.nlm.nih.gov/pubmed/15297299">http://www.ncbi.nlm.nih.gov/pubmed/15297299</a>), comparing the genes within one edge of the 22 seed genes against all of the genes in the human STRING PPI with edges that passed the scoring criteria. KEGG gene – pathway annotations were obtained from a query of the KEGG REST api using the KEGGREST v1.6.2 Bioconductor package on Feb 11, 2015. Gene Ontology gene – annotations are based on all GO biological process annotations from the org.Hs.eg.db v3.0.0 package.</p>
+
+<p>All code for network generation and enrichment analysis is available from github at: <a href="https://github.com/rmflight/black_mirna_mrna_nsclc_network_enrichment">https://github.com/rmflight/black_mirna_mrna_nsclc_network_enrichment</a></p>
+
+<h2>Generate STRING based PPI</h2>
+
+<h3>Data</h3>
+
+<p>mRNA and miRNA from NSCLC cell lines with differential response to erolotinib (EGFR inhibitor). Affy U133 2.0, miRNA TaqMan card.</p>
+
+<p>After reading in the data, what are our options?</p>
+
+<ul>
+<li>Use <em>STRING</em> to get PPI (definite)</li>
+<li>Look for GO and KEGG pathway enrichment in the PPI network compared to all of STRING</li>
+</ul>
+
+<pre><code class="r">mirData &lt;- read.table(file.path(inputDataLoc, &quot;compiledinteractiondata.csv&quot;), header=TRUE, stringsAsFactors=FALSE, sep=&quot;,&quot;)
+newmRNA &lt;- sapply(seq(1, nrow(mirData)), function(x){
+  useID &lt;- mirData$mRNA[x]
+  nID &lt;- nchar(useID)
+  substring(useID, 2, nID)
+})
+mirData$mRNA &lt;- newmRNA
+</code></pre>
+
+<p>What is the distribution of associations of miRNA&#39;s to mRNA from the PLS results?</p>
+
+<pre><code class="r">splitMRNA &lt;- split(mirData$miRNA, mirData$mRNA)
+splitCount &lt;- sapply(splitMRNA, length)
+hist(splitCount)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" alt="plot of chunk linkDistribution"/> </p>
+
+<p>Based on this (and comments from P Black), we will restrict our analysis to those Affy probesets with at least <strong>5</strong> miRNA associations.</p>
+
+<pre><code class="r">nMin &lt;- 5
+sum(splitCount &gt;= nMin)
+</code></pre>
+
+<pre><code>## [1] 22
+</code></pre>
+
+<pre><code class="r">useMRNA &lt;- data.frame(gene=names(splitCount)[splitCount &gt;= nMin], stringsAsFactors=FALSE)
+</code></pre>
+
+<p>We want to convert our <em>Affy</em> ID&#39;s to other gene symbols and names for further use.</p>
+
+<pre><code class="r">outMRNA &lt;- select(hgu133plus2.db, useMRNA$gene, c(&quot;SYMBOL&quot;, &quot;GENENAME&quot;, &quot;ENTREZID&quot;), &quot;PROBEID&quot;)
+</code></pre>
+
+<pre><code>## Warning in .generateExtraRows(tab, keys, jointype): &#39;select&#39; resulted in
+## 1:many mapping between keys and return rows
+</code></pre>
+
+<h3>STRING PPI</h3>
+
+<p>We are doing a programmatic query of STRING because the website is rather limiting in how much data it will show you (top 10 by default). So even though we will initially only look at direct interactions, we may get more information than is available off the website, as the website initially limits you to 10 interactions unless you explicitly ask it for more.</p>
+
+<h4>Translate to STRING ID</h4>
+
+<p>We have downloaded the STRING ID to alias file previously, and we will use our own function to do translation because we get off by 1 errors for the genes we started with if we use the <code>stringdb</code> package in <code>Bioconductor</code>. We then generate STRING Ensembl Proteins from the STRING IDs.</p>
+
+<pre><code class="r">stringIDFile &lt;- file.path(stringFileLoc, &quot;9606__protein_aliases_tf.tsv.gz&quot;)
+outMRNA_mapped &lt;- map2STRING(outMRNA, &quot;SYMBOL&quot;, stringIDFile)
+outMRNA_mapped$ENSEMBLPROT &lt;- substring(outMRNA_mapped$protein_id, 6, 20)
+
+# genes with larger expression values
+seed_genes &lt;- unique(outMRNA_mapped$SYMBOL)
+outMRNA_mapped &lt;- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% seed_genes),]
+</code></pre>
+
+<p>We&#39;ve previously downloaded the STRINGdb files for human. Let&#39;s load them up and parse them down.</p>
+
+<pre><code class="r">stringData &lt;- read.table(file.path(stringFileLoc, &quot;9606.protein.links.detailed.v9.1.txt.gz&quot;), header=TRUE, sep=&quot; &quot;, stringsAsFactors=FALSE)
+head(stringData)
+</code></pre>
+
+<pre><code>##               protein1             protein2 neighborhood fusion
+## 1 9606.ENSP00000000233 9606.ENSP00000020673            0      0
+## 2 9606.ENSP00000000233 9606.ENSP00000054666            0      0
+## 3 9606.ENSP00000000233 9606.ENSP00000158762            0      0
+## 4 9606.ENSP00000000233 9606.ENSP00000203407            0      0
+## 5 9606.ENSP00000000233 9606.ENSP00000203630            0      0
+## 6 9606.ENSP00000000233 9606.ENSP00000215071            0      0
+##   cooccurence coexpression experimental database textmining combined_score
+## 1           0            0            0        0        176            176
+## 2           0            0           88        0        309            327
+## 3           0            0            0        0        718            718
+## 4           0          272            0        0          0            272
+## 5           0          241            0        0          0            241
+## 6           0          130            0        0        105            170
+</code></pre>
+
+<p>We will use the cutoff for <code>combined_score</code> of 400 (the default in STRING itself), and then filter down to just those things with co-expression, experimental or database evidence.</p>
+
+<pre><code class="r">combScore &lt;- 400
+minScores &lt;- c(experimental=400, database=400, coexpression=400)
+passesScore &lt;- rep(FALSE, nrow(stringData))
+invisible(lapply(names(minScores), function(evidence){
+  passesScore &lt;&lt;- passesScore | (stringData[, evidence] &gt;= minScores[evidence])
+}))
+passesScore &lt;- passesScore &amp; (stringData$combined_score &gt;= combScore)
+head(stringData[passesScore,])
+</code></pre>
+
+<pre><code>##                 protein1             protein2 neighborhood fusion
+## 25  9606.ENSP00000000233 9606.ENSP00000223136            0      0
+## 66  9606.ENSP00000000233 9606.ENSP00000254584            0      0
+## 67  9606.ENSP00000000233 9606.ENSP00000255194            0      0
+## 83  9606.ENSP00000000233 9606.ENSP00000262305            0      0
+## 125 9606.ENSP00000000233 9606.ENSP00000281419            0      0
+## 143 9606.ENSP00000000233 9606.ENSP00000296557            0      0
+##     cooccurence coexpression experimental database textmining
+## 25            0          411            0        0          0
+## 66            0            0          845        0        676
+## 67            0            0          620        0        120
+## 83            0            0          621        0        585
+## 125           0            0          620        0        621
+## 143           0            0          620        0        939
+##     combined_score
+## 25             411
+## 66             946
+## 67             643
+## 83             832
+## 125            846
+## 143            975
+</code></pre>
+
+<pre><code class="r">stringData &lt;- stringData[passesScore,]
+</code></pre>
+
+<p>Now that we have possible interactions, we need to filter them down to links that involve our actual proteins of interest, and any links between those proteins.</p>
+
+<pre><code class="r">PPI_22 &lt;- getPPI(outMRNA_mapped$protein_id, stringData)
+
+n_edges &lt;- nrow(PPI_22)
+uniq_genes &lt;- unique(c(PPI_22$protein1, PPI_22$protein2))
+</code></pre>
+
+<p>The PPI network generate from the <em>22</em> seed genes has 728 proteins,  35788 interactions, and contains 21 of the original genes used to seed the network. </p>
+
+<h2>Gene Ontology and KEGG Pathway Enrichment</h2>
+
+<h3>Gene Ontology</h3>
+
+<p>First we will take <strong>all</strong> of the genes that had STRING interactions and treat them as our <em>interesting</em> group, and do Gene Ontology (GO) enrichment with respect to the set of genes that have interactions &gt;= 400.</p>
+
+<p>To do this, we first generate an Ensembl protein to Entrez mapping for use in this and the KEGG pathway enrichment.</p>
+
+<pre><code class="r">library(GO.db)
+all_proteins &lt;- substring(unique(c(stringData$protein1, stringData$protein2)), 6)
+
+protein_entrez &lt;- select(org.Hs.eg.db, all_proteins, &quot;ENTREZID&quot;, &quot;ENSEMBLPROT&quot;)
+</code></pre>
+
+<pre><code>## Warning in .generateExtraRows(tab, keys, jointype): &#39;select&#39; resulted in
+## 1:many mapping between keys and return rows
+</code></pre>
+
+<pre><code class="r">protein_entrez &lt;- protein_entrez[!(is.na(protein_entrez$ENTREZID)),]
+
+gene_universe &lt;- unique(protein_entrez$ENTREZID)
+ensembl_diff &lt;- substring(unique(c(PPI_22$protein1, PPI_22$protein2)), 6)
+gene_diff &lt;- unique(protein_entrez$ENTREZID[(protein_entrez$ENSEMBLPROT %in% ensembl_diff)])
+
+gene_to_go &lt;- select(org.Hs.eg.db, gene_universe, c(&quot;GOALL&quot;, &quot;ONTOLOGYALL&quot;), &quot;ENTREZID&quot;)
+</code></pre>
+
+<pre><code>## Warning in .generateExtraRows(tab, keys, jointype): &#39;select&#39; resulted in
+## 1:many mapping between keys and return rows
+</code></pre>
+
+<pre><code class="r">gene_to_go &lt;- gene_to_go[(gene_to_go$ONTOLOGYALL %in% &quot;BP&quot;), ]
+
+go_annotation &lt;- split(gene_to_go$ENTREZID, gene_to_go$GOALL)
+go_annotation &lt;- lapply(go_annotation, unique)
+
+go_description &lt;- Term(names(go_annotation))
+</code></pre>
+
+<p>Now set up the annotation for enrichment calculations</p>
+
+<pre><code class="r">go_annotation &lt;- new(&quot;annotation&quot;,
+                     annotation_to_feature = go_annotation,
+                     description = go_description)
+
+go_hypergeom &lt;- new(&quot;hypergeom_features&quot;,
+                    significant = gene_diff,
+                    universe = gene_universe,
+                    annotation = go_annotation)
+
+sig_go_enrichment &lt;- hypergeometric_feature(go_hypergeom)
+
+sig_go_table &lt;- sig_go_enrichment@annotation@stats
+sig_go_table$description &lt;- go_description[rownames(sig_go_table)]
+write.table(sig_go_table, file = file.path(outputLoc, &quot;go_22.tab&quot;), row.names = TRUE, col.names = TRUE, sep = &quot;\t&quot;)
+</code></pre>
+
+<p>We will also try KEGG.</p>
+
+<h3>KEGG Pathways</h3>
+
+<p>We previously got the gene to kegg pathway mapping data, lets do some enrichment!</p>
+
+<pre><code class="r">data(kegg_annotation)
+kegg_annotation &lt;- new(&quot;annotation&quot;,
+                       annotation_to_feature = kegg_annotation$annotation,
+                       description = kegg_annotation$description)
+kegg_hypergeom &lt;- new(&quot;hypergeom_features&quot;,
+                      significant = gene_diff,
+                      universe = gene_universe,
+                      annotation = kegg_annotation)
+
+sig_kegg_enrichment &lt;- hypergeometric_feature(kegg_hypergeom)
+sig_kegg_table &lt;- sig_kegg_enrichment@annotation@stats
+sig_kegg_table$description &lt;- kegg_annotation@description[rownames(sig_kegg_table)]
+write.table(sig_kegg_table, file = file.path(outputLoc, &quot;kegg_22.tab&quot;), row.names = TRUE, col.names = TRUE, sep = &quot;\t&quot;)
+</code></pre>
+
+<p><strong>Note</strong> that the output files are written to the location in the version of the package that is cloned, not to the installed package location. </p>
+
+<h2>Generate Trimmed Network for Visualization</h2>
+
+<p>Based on the rest of the data and the above network, three genes were selected for visualization, EIF4B, RAB8A, and PPPC1B. We will create a new PPI network using these three genes, and save it for visualization in the other vignette.</p>
+
+<pre><code class="r">seedGenes &lt;- c(&quot;EIF4B&quot;, &quot;RAB8A&quot;, &quot;PPP1CB&quot;)
+
+seedMRNA &lt;- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% seedGenes),]
+
+PPI_seed &lt;- getPPI(seedMRNA$protein_id, stringData)
+save(PPI_seed, file = &quot;inst/data/PPI_seed.RData&quot;)
+save(seedMRNA, file = &quot;inst/data/seedMRNA.RData&quot;)
+</code></pre>
+
+</body>
+
+</html>

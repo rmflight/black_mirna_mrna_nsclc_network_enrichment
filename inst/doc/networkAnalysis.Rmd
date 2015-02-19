@@ -1,0 +1,217 @@
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{miRNA-mRNA NSCLC Network Enrichment}
+%\VignetteDepends{graph, org.Hs.eg.db, hgu133plus2.db, GO.db, xtable}
+-->
+
+# Network Enrichment
+
+```{r setup, message=FALSE, warning=FALSE}
+library(black.miRNAmRNA.NSCLC.networkEnrichment)
+library(graph)
+library(org.Hs.eg.db)
+library(hgu133plus2.db)
+library(GO.db)
+library(xtable)
+
+packageData <- system.file("extdata", package = "black.miRNAmRNA.NSCLC.networkEnrichment")
+stringFileLoc <- file.path(packageData, "STRING")
+inputDataLoc <- file.path(packageData, "input")
+
+currLoc <- basename(getwd())
+outputLoc <- switch(currLoc,
+                    mirna_mrna_nsclc_network_enrichment = "inst/extdata/output",
+                    vignettes = "../inst/extdata/output")
+```
+
+
+## Summary paragraph in publication
+
+From the miRNA:mRNA associations described above, the Affymetrix probesets that demonstrated interactions with five or more miRNA genes (nfac=2) were retained for further interrogation, regardless of LOOCV results. STRING database v 9.1 (Franceschini et al., 2013) files for human were downloaded for further processing. The Bioconductor  v3.0 package (Gentleman et al., 2004) for Affymetrix(R) HGU133-plus2 chips (hgu133plus2.db v3.0.0) was used to translate Affymetrix(R) probeset identifiers to gene identifiers (symbols, gene names, Entrez IDs) in R  v3.1.2 (2014). The gene symbols were translated to STRING database IDs using the STRING protein aliases mapping file. The full set of STRING protein-protein interactions (PPIs) were filtered to those with a combined score greater than 400, as well as individual scores greater than 400 in any one of the "experimental", "database", and "coexpression" evidences. From this subset of PPIs, the interactions with the original set of genes and their interactors (those genes within one edge or interaction) were extracted from the PPI database. For each PPI, only a record that there was an interaction between the two proteins was kept with no information on the number of evidences or the score of the interaction. STRING protein IDs were translated to gene IDs using the human database (org.Hs.eg.db v3.0.0) with Ensembl Protein (ENSEMBLPROT) as the query key ( STRING protein identifiers are a combination of species id and Ensembl protein id). STRING protein-protein interaction information was used to understand signaling pathway enrichment using KEGG and Gene Ontology terms (references from below). 
+
+KEGG and Gene Ontology enrichment was performed using a hypergeometric test (Boyle et al., 2004, http://www.ncbi.nlm.nih.gov/pubmed/15297299), comparing the genes within one edge of the 22 seed genes against all of the genes in the human STRING PPI with edges that passed the scoring criteria. KEGG gene – pathway annotations were obtained from a query of the KEGG REST api using the KEGGREST v1.6.2 Bioconductor package on Feb 11, 2015. Gene Ontology gene – annotations are based on all GO biological process annotations from the org.Hs.eg.db v3.0.0 package.
+
+All code for network generation and enrichment analysis is available from github at: https://github.com/rmflight/black_mirna_mrna_nsclc_network_enrichment
+
+## Generate STRING based PPI
+
+### Data
+
+mRNA and miRNA from NSCLC cell lines with differential response to erolotinib (EGFR inhibitor). Affy U133 2.0, miRNA TaqMan card.
+
+After reading in the data, what are our options?
+
+* Use *STRING* to get PPI (definite)
+* Look for GO and KEGG pathway enrichment in the PPI network compared to all of STRING
+
+```{r loadData}
+mirData <- read.table(file.path(inputDataLoc, "compiledinteractiondata.csv"), header=TRUE, stringsAsFactors=FALSE, sep=",")
+newmRNA <- sapply(seq(1, nrow(mirData)), function(x){
+  useID <- mirData$mRNA[x]
+  nID <- nchar(useID)
+  substring(useID, 2, nID)
+})
+mirData$mRNA <- newmRNA
+```
+
+What is the distribution of associations of miRNA's to mRNA from the PLS results?
+
+```{r linkDistribution}
+splitMRNA <- split(mirData$miRNA, mirData$mRNA)
+splitCount <- sapply(splitMRNA, length)
+hist(splitCount)
+```
+
+Based on this (and comments from P Black), we will restrict our analysis to those Affy probesets with at least **5** miRNA associations.
+
+```{r filterMRNA}
+nMin <- 5
+sum(splitCount >= nMin)
+
+useMRNA <- data.frame(gene=names(splitCount)[splitCount >= nMin], stringsAsFactors=FALSE)
+```
+
+We want to convert our *Affy* ID's to other gene symbols and names for further use.
+
+```{r convertID}
+outMRNA <- select(hgu133plus2.db, useMRNA$gene, c("SYMBOL", "GENENAME", "ENTREZID"), "PROBEID")
+```
+
+### STRING PPI
+
+We are doing a programmatic query of STRING because the website is rather limiting in how much data it will show you (top 10 by default). So even though we will initially only look at direct interactions, we may get more information than is available off the website, as the website initially limits you to 10 interactions unless you explicitly ask it for more.
+
+#### Translate to STRING ID
+
+We have downloaded the STRING ID to alias file previously, and we will use our own function to do translation because we get off by 1 errors for the genes we started with if we use the `stringdb` package in `Bioconductor`. We then generate STRING Ensembl Proteins from the STRING IDs.
+
+```{r getSTRINGID}
+stringIDFile <- file.path(stringFileLoc, "9606__protein_aliases_tf.tsv.gz")
+outMRNA_mapped <- map2STRING(outMRNA, "SYMBOL", stringIDFile)
+outMRNA_mapped$ENSEMBLPROT <- substring(outMRNA_mapped$protein_id, 6, 20)
+
+# genes with larger expression values
+seed_genes <- unique(outMRNA_mapped$SYMBOL)
+outMRNA_mapped <- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% seed_genes),]
+```
+
+We've previously downloaded the STRINGdb files for human. Let's load them up and parse them down.
+
+```{r stringData}
+stringData <- read.table(file.path(stringFileLoc, "9606.protein.links.detailed.v9.1.txt.gz"), header=TRUE, sep=" ", stringsAsFactors=FALSE)
+head(stringData)
+```
+
+We will use the cutoff for `combined_score` of 400 (the default in STRING itself), and then filter down to just those things with co-expression, experimental or database evidence.
+
+```{r filterData}
+combScore <- 400
+minScores <- c(experimental=400, database=400, coexpression=400)
+passesScore <- rep(FALSE, nrow(stringData))
+invisible(lapply(names(minScores), function(evidence){
+  passesScore <<- passesScore | (stringData[, evidence] >= minScores[evidence])
+}))
+passesScore <- passesScore & (stringData$combined_score >= combScore)
+head(stringData[passesScore,])
+```
+
+```{r trueFilter}
+stringData <- stringData[passesScore,]
+```
+
+Now that we have possible interactions, we need to filter them down to links that involve our actual proteins of interest, and any links between those proteins.
+
+```{r getPPI_22}
+PPI_22 <- getPPI(outMRNA_mapped$protein_id, stringData)
+
+n_edges <- nrow(PPI_22)
+uniq_genes <- unique(c(PPI_22$protein1, PPI_22$protein2))
+```
+
+The PPI network generate from the *22* seed genes has `r length(uniq_genes)` proteins,  `r n_edges` interactions, and contains `r sum(outMRNA_mapped$protein_id %in% uniq_genes)` of the original genes used to seed the network. 
+
+## Gene Ontology and KEGG Pathway Enrichment
+
+### Gene Ontology
+
+First we will take **all** of the genes that had STRING interactions and treat them as our *interesting* group, and do Gene Ontology (GO) enrichment with respect to the set of genes that have interactions >= 400.
+
+To do this, we first generate an Ensembl protein to Entrez mapping for use in this and the KEGG pathway enrichment.
+
+```{r ensemblp_to_entrez}
+library(GO.db)
+all_proteins <- substring(unique(c(stringData$protein1, stringData$protein2)), 6)
+
+protein_entrez <- select(org.Hs.eg.db, all_proteins, "ENTREZID", "ENSEMBLPROT")
+protein_entrez <- protein_entrez[!(is.na(protein_entrez$ENTREZID)),]
+
+gene_universe <- unique(protein_entrez$ENTREZID)
+ensembl_diff <- substring(unique(c(PPI_22$protein1, PPI_22$protein2)), 6)
+gene_diff <- unique(protein_entrez$ENTREZID[(protein_entrez$ENSEMBLPROT %in% ensembl_diff)])
+
+gene_to_go <- select(org.Hs.eg.db, gene_universe, c("GOALL", "ONTOLOGYALL"), "ENTREZID")
+gene_to_go <- gene_to_go[(gene_to_go$ONTOLOGYALL %in% "BP"), ]
+
+go_annotation <- split(gene_to_go$ENTREZID, gene_to_go$GOALL)
+go_annotation <- lapply(go_annotation, unique)
+
+go_description <- Term(names(go_annotation))
+```
+
+Now set up the annotation for enrichment calculations
+
+```{r go_enrichment}
+go_annotation <- new("annotation",
+                     annotation_to_feature = go_annotation,
+                     description = go_description)
+
+go_hypergeom <- new("hypergeom_features",
+                    significant = gene_diff,
+                    universe = gene_universe,
+                    annotation = go_annotation)
+
+sig_go_enrichment <- hypergeometric_feature(go_hypergeom)
+
+sig_go_table <- sig_go_enrichment@annotation@stats
+sig_go_table$description <- go_description[rownames(sig_go_table)]
+write.table(sig_go_table, file = file.path(outputLoc, "go_22.tab"), row.names = TRUE, col.names = TRUE, sep = "\t")
+```
+
+We will also try KEGG.
+
+### KEGG Pathways
+
+We previously got the gene to kegg pathway mapping data, lets do some enrichment!
+
+```{r kegg_enrichment}
+data(kegg_annotation)
+kegg_annotation <- new("annotation",
+                       annotation_to_feature = kegg_annotation$annotation,
+                       description = kegg_annotation$description)
+kegg_hypergeom <- new("hypergeom_features",
+                      significant = gene_diff,
+                      universe = gene_universe,
+                      annotation = kegg_annotation)
+
+sig_kegg_enrichment <- hypergeometric_feature(kegg_hypergeom)
+sig_kegg_table <- sig_kegg_enrichment@annotation@stats
+sig_kegg_table$description <- kegg_annotation@description[rownames(sig_kegg_table)]
+write.table(sig_kegg_table, file = file.path(outputLoc, "kegg_22.tab"), row.names = TRUE, col.names = TRUE, sep = "\t")
+```
+
+**Note** that the output files are written to the location in the version of the package that is cloned, not to the installed package location. 
+
+## Generate Trimmed Network for Visualization
+
+Based on the rest of the data and the above network, three genes were selected for visualization, EIF4B, RAB8A, and PPPC1B. We will create a new PPI network using these three genes, and save it for visualization in the other vignette.
+
+```{r visNetwork, eval=FALSE}
+seedGenes <- c("EIF4B", "RAB8A", "PPP1CB")
+
+seedMRNA <- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% seedGenes),]
+
+PPI_seed <- getPPI(seedMRNA$protein_id, stringData)
+save(PPI_seed, file = "inst/data/PPI_seed.RData")
+save(seedMRNA, file = "inst/data/seedMRNA.RData")
+```
+
