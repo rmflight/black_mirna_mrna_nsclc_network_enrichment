@@ -49,13 +49,6 @@ communityAsList <- function(commObject, decreasing=TRUE){
   return(listCommunity)
 }
 
-#' @name allKGML.RData
-#' @title allKGML.RData
-#' @docType data
-#' @source downloaded using KEGGREST from KEGG on June 4, 2014
-#' @details contains set of KGML xml data that P Blacks genes were annotated to as of June 4, 2014
-NULL
-
 #' @name kegg_annotation.RData
 #' @title kegg_annotation.RData
 #' @docType data
@@ -75,6 +68,18 @@ NULL
 #' names(kegg_desc) <- substring(names(kegg_desc), 6)
 #' kegg_annotation$description <- kegg_desc[names(kegg_annotation$annotation)]
 #' }
+NULL
+
+#' @name visNetwork.RData
+#' @title visNetwork.RData
+#' @docType data
+#' @source filtered STRING PPI network with edges > 400, seeded from EIF4B, RAB8A, and PPPC1B
+NULL
+
+#' @name seedGenes.RData
+#' @title seedGenes.RData
+#' @docType data
+#' @source the \code{outMRNA_mapped} object for the seed genes of EIF4B, RAB8A, and PPPC1B
 NULL
 
 #' map to STRING
