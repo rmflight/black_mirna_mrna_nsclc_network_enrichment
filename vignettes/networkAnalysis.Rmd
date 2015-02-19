@@ -17,6 +17,11 @@ library(xtable)
 packageData <- system.file("extdata", package = "black.miRNAmRNA.NSCLC.networkEnrichment")
 stringFileLoc <- file.path(packageData, "STRING")
 inputDataLoc <- file.path(packageData, "input")
+
+currLoc <- basename(getwd())
+outputLoc <- switch(currLoc,
+                    mirna_mrna_nsclc_network_enrichment = "inst/extdata/output",
+                    vignettes = "../inst/extdata/output")
 ```
 
 
