@@ -76,8 +76,8 @@ NULL
 #' @source filtered STRING PPI network with edges > 400, seeded from EIF4B, RAB8A, and PPPC1B
 NULL
 
-#' @name seedGenes.RData
-#' @title seedGenes.RData
+#' @name seedMRNA.RData
+#' @title seedMRNA.RData
 #' @docType data
 #' @source the \code{outMRNA_mapped} object for the seed genes of EIF4B, RAB8A, and PPPC1B
 NULL

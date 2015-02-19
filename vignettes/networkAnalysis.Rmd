@@ -212,6 +212,6 @@ seedMRNA <- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% seedGenes),]
 
 PPI_seed <- getPPI(seedMRNA$protein_id, stringData)
 save(PPI_seed, file = "inst/data/PPI_seed.RData")
-save(seedGenes, file = "inst/data/seedGenes.RData")
+save(seedMRNA, file = "inst/data/seedMRNA.RData")
 ```
 
