@@ -1,0 +1,42 @@
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{miRNA-mRNA NSCLC Seeded Network Visualization}
+%\VignetteDepends{graph, org.Hs.eg.db, RCytoscape}
+-->
+
+# Visualize Seeded Network
+
+In the network analysis vignette, we generated a full network of PPI with the 22 genes that had some significant number of interactions with the miRNA's. Based on this and other data, three genes came across as rather important. The previous analysis we generated the network and saved it and the gene data. We want a figure that shows their interaction network for the publication.
+
+```{r load_packages, message=FALSE, warning=FALSE}
+library(graph)
+library(org.Hs.eg.db)
+library(RCytoscape)
+```
+
+
+```{r load_data}
+data(seedMRNA)
+seedMRNA
+
+data(PPI_seed)
+head(PPI_seed)
+nrow(PPI_seed)
+```
+
+
+
+
+```{r setupRunningCytoscape, echo=FALSE, error=FALSE, results='asis'}
+runCy <- FALSE
+
+try({
+  tmp <- RCytoscape::CytoscapeWindow("tmp")
+  runCy <- TRUE
+  RCytoscape::deleteWindow(tmp)
+})
+
+if (!runCy){
+  print("No connection to Cytoscape available, subsequent visualizations were not run")
+}
+```
