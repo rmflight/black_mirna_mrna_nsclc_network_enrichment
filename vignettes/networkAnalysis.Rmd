@@ -6,7 +6,7 @@
 
 # Network Enrichment
 
-```{r setup}
+```{r setup, message=FALSE, warning=FALSE}
 library(black.miRNAmRNA.NSCLC.networkEnrichment)
 library(graph)
 library(org.Hs.eg.db)
