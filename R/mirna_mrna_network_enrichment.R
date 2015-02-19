@@ -282,8 +282,8 @@ collapseNodes <- function(ppiGraph, ppiInfo, ppiSeed, collapseString){
   ppiMatrix <- as(ppiGraph, "matrix")
   
   ppiNew <- ppiMatrix
-  ppiNew <- rbind(ppiNew, matrix(0, nrow=length(collapseSearch), ncol=ncol(ppiNew)))
-  ppiNew <- cbind(ppiNew, matrix(0, nrow=nrow(ppiNew), ncol=length(collapseSearch)))
+  ppiNew <- rbind(ppiNew, matrix(0, nrow=length(collapseString), ncol=ncol(ppiNew)))
+  ppiNew <- cbind(ppiNew, matrix(0, nrow=nrow(ppiNew), ncol=length(collapseString)))
   rownames(ppiNew) <- c(rownames(ppiMatrix), collapseString)
   colnames(ppiNew) <- c(colnames(ppiMatrix), collapseString)
   
