@@ -9,6 +9,32 @@
 #' @name black.miRNAmRNA.NSCLC.networkEnrichment
 NULL
 
+#' get PPI network from STRING
+#' 
+#' Given a set of gene identifiers and a STRING data.frame, get the interactors within
+#' a single edge of the \emph{seed} genes, and the set of all edges between the genes
+#' 
+#' @param seedGenes the genes to seed the PPI
+#' @param stringDB the STRING data.frame to use
+#' 
+#' @export
+#' @return data.frame
+getPPI <- function(seedGenes, stringDB){
+  hasSeed <- which((stringData$protein1 %in% seedGenes) | (stringData$protein2 %in% seedGenes))
+  useNodes <- unique(c(stringDB$protein1[hasSeed], stringDB$protein2[hasSeed]))
+  
+  hasP1 <- stringDB$protein1 %in% useNodes
+  hasP2 <- stringDB$protein2 %in% useNodes
+  
+  useEdges <- hasP1 & hasP2
+  
+  stringEdges <- stringDB[useEdges,]
+  
+  return(stringEdges)
+  
+}
+
+
 #' spit out community structure
 #' 
 #' @param commObject the community object returned by an igraph community calculation
