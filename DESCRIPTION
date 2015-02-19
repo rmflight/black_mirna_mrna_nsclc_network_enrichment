@@ -1,0 +1,11 @@
+Package: black.miRNAmRNA.NSCLC.networkEnrichment
+Type: Package
+Title: Network Analysis for Penni Black Data
+Version: 0.0.1
+Date: 2014-05-27
+Author: Robert M Flight <rflight79@gmail.com>
+Maintainer: Robert M Flight <rflight79@gmail.com>
+Description: Analysis of gene-gene networks 
+Depends: R (>= 3.0)
+Suggests: graph, org.Hs.eg.db, hgu133plus2.db, GO.db, xtable, RCytoscape
+License: MIT
