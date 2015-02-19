@@ -146,7 +146,7 @@ protein_entrez <- select(org.Hs.eg.db, all_proteins, "ENTREZID", "ENSEMBLPROT")
 protein_entrez <- protein_entrez[!(is.na(protein_entrez$ENTREZID)),]
 
 gene_universe <- unique(protein_entrez$ENTREZID)
-ensembl_diff <- substring(unique(c(stringEdges$protein1, stringEdges$protein2)), 6)
+ensembl_diff <- substring(unique(c(PPI_22$protein1, PPI_22$protein2)), 6)
 gene_diff <- unique(protein_entrez$ENTREZID[(protein_entrez$ENSEMBLPROT %in% ensembl_diff)])
 
 gene_to_go <- select(org.Hs.eg.db, gene_universe, c("GOALL", "ONTOLOGYALL"), "ENTREZID")
@@ -174,9 +174,10 @@ sig_go_enrichment <- hypergeometric_feature(go_hypergeom)
 
 sig_go_table <- sig_go_enrichment@annotation@stats
 sig_go_table$description <- go_description[rownames(sig_go_table)]
+write.table(sig_go_table, file = file.path(outputLoc, "go_22.tab"), row.names = TRUE, col.names = TRUE, sep = "\t")
 ```
 
-Hmmm, hard to interpret. Let's try KEGG!
+We will also try KEGG.
 
 ### KEGG Pathways
 
@@ -195,8 +196,10 @@ kegg_hypergeom <- new("hypergeom_features",
 sig_kegg_enrichment <- hypergeometric_feature(kegg_hypergeom)
 sig_kegg_table <- sig_kegg_enrichment@annotation@stats
 sig_kegg_table$description <- kegg_annotation@description[rownames(sig_kegg_table)]
+write.table(sig_kegg_table, file = file.path(outputLoc, "kegg_22.tab"), row.names = TRUE, col.names = TRUE, sep = "\t")
 ```
 
+**Note** that the output files are written to the location in the version of the package that is cloned, not to the installed package location. 
 
 Now we should instantiate the network, and start adding information to it.
 
