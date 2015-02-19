@@ -221,3 +221,31 @@ hypergeometric_basic <- function(num_white, num_black, num_drawn, num_white_draw
   
   list(p = p_values, odds = odds_ratio, expected = expected)
 }
+
+
+#' graph from PPI
+#' 
+#' generates a graph from the PPI network suitable for visualization
+#' 
+#' @param PPI the STRING interaction network
+#' @param orgDB an organism database to add data to the network
+#' @export 
+#' @return list
+#' @import graph
+PPI_to_graph <- function(PPI, orgDB){
+  ppiNodes <- unique(c(PPI$protein1, PPI$protein2))
+  ppiGraph <- graphNEL(nodes=ppiNodes, edgemode="directed")
+  ppiGraph <- addEdge(ppiEdges$protein1, ppiEdges$protein2, eifGraph)
+
+  trimNodes <- substring(ppiNodes, 6, 20)
+  ppiInfo <- select(orgDB, trimNodes, c("SYMBOL", "GENENAME", "ENTREZID"), keytype="ENSEMBLPROT")
+  ppiInfo$nodeID <- paste("9606.", ppiInfo$ENSEMBLPROT, sep="")
+
+  for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID")){
+    nodeDataDefaults(ppiGraph, iName) <- ""
+    attr(nodeDataDefaults(ppiGraph, iName), "class") <- "STRING"
+    nodeData(ppiGraph, ppiInfo$nodeID, iName) <- ppiInfo[,iName]
+  }
+  
+  return(list(info = ppiInfo, graph = ppiGraph))
+}
