@@ -64,8 +64,37 @@ if (!runCy){
 
 ```{r visGraph, eval=runCy}
 cw <- CytoscapeWindow("collapsed", collapseGraph)
+displayGraph(cw)
 seedNodes <- collapseInfo$nodeID[collapseInfo$SYMBOL %in% seedMRNA$SYMBOL]
-eifrabNotNodes <- grep("^9606", eifNewInfo$nodeID, value=TRUE)
-eifrabNotNodes <- eifrabNotNodes[!(eifrabNotNodes %in% eifrabNodes)]
+otherNodes <- grep("^9606", collapseInfo$nodeID, value=TRUE)
+otherNodes <- otherNodes[!(otherNodes %in% seedNodes)]
+
+setLayoutProperties(cw, layout.name="kamada-kawai-noweight", list(anticollisionStrength=4000, rest_length=100))
+
+layoutNetwork(cw, "kamada-kawai-noweight")
+redraw(cw)
+setNodeLabelDirect(cw, nodes(collapseGraph), nodeData(collapseGraph, nodes(collapseGraph), "DISPLAY"))
+redraw(cw)
+setNodeColorDirect(cw, seedNodes, "#F5C46F")
+redraw(cw)
+setNodeColorDirect(cw, otherNodes, "#6FA0F5")
+redraw(cw)
+setDefaultBackgroundColor(cw, "#FFFFFF")
+redraw(cw)
+setDefaultNodeSize(cw, 60)
+redraw(cw)
+setDefaultEdgeColor(cw, "#CCCCCC")
+redraw(cw)
+setDefaultNodeFontSize(cw, "20")
+redraw(cw)
 ```
+
+**Note**: If you want to actually get it so that the nodes do not overlap, do the following in Cytoscape:
+
+* Layout -> Settings
+* Choose `Edge-weighted-spring-embedded`
+* You should see that the last two parameters have values of `2000` and `4000`
+* Execute Layout
+* Done
+
 
