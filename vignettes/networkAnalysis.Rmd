@@ -121,24 +121,16 @@ stringData <- stringData[passesScore,]
 
 Now that we have possible interactions, we need to filter them down to links that involve our actual proteins of interest, and any links between those proteins.
 
-```{r getUsefulLinks}
-rnd1 <- which((stringData$protein1 %in% outMRNA_mapped$protein_id) | (stringData$protein2 %in% outMRNA_mapped$protein_id))
+```{r getPPI_22}
+PPI_22 <- getPPI(outMRNA_mapped$protein_id, stringData)
 
-useNodes <- unique(c(stringData$protein1[rnd1], stringData$protein2[rnd1]))
-
-hasP1 <- stringData$protein1 %in% useNodes
-hasP2 <- stringData$protein2 %in% useNodes
-
-useEdges <- hasP1 & hasP2
-
-stringEdges <- stringData[useEdges,]
-nrow(stringEdges)
-
-# how many of our genes are actually in the network?
-sum(outMRNA_mapped$protein_id %in% unique(c(stringEdges$protein1, stringEdges$protein2)))
+n_edges <- nrow(PPI_22)
+uniq_genes <- unique(c(PPI_22$protein1, PPI_22$protein2))
 ```
 
-## Gene Ontology and Pathway Enrichment
+The PPI network generate from the *22* seed genes has `r length(uniq_genes)` proteins,  `r n_edges` interactions, and contains `r sum(outMRNA_mapped$protein_id %in% uniq_genes)` of the original genes used to seed the network. 
+
+## Gene Ontology and KEGG Pathway Enrichment
 
 ### Gene Ontology
 
