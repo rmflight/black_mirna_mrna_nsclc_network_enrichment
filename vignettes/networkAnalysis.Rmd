@@ -14,40 +14,30 @@ library(hgu133plus2.db)
 library(GO.db)
 library(xtable)
 
-stringFileLoc <- "/home/rmflight/Documents/stringdatabase_91/"
+packageData <- system.file("extdata", package = "black.miRNAmRNA.NSCLC.networkEnrichment")
+stringFileLoc <- file.path(packageData, "STRING")
+inputDataLoc <- file.path(packageData, "input")
 ```
 
 
-## Summary paragraph for publication
+## Summary paragraph in publication
 
-From the miRNA-Affymetrix probeset associations, those probesets that had interactions with five or more miRNA's were kept for further interrogation.  STRING database [1] files for human were downloaded for further processing. The Bioconductor [2] (v2.14) package for Affymetrix(R) HGU133-plus2 chips (hgu133plus2.db v2.10.1) was used to translate Affymetrix(R) probeset identifiers to gene identifiers (symbols, gene names, Entrez IDs) in R [3] (v3.0.1). The gene symbols were translated to STRING database IDs using the STRING protein aliases mapping file. The full set of STRING protein-protein interactions (PPIs) were filtered to those with a combined score greater than 400, as well as individual scores greater than 400 in any one of the "experimental", "database", and "coexpression" evidences. From this subset of PPIs, the interactions with the original set of genes and their interactors (essentially those genes within two hops or interactions) were extracted from the PPI database. In each PPI, only a record that there was an interaction between the two proteins was kept with no information on the number of evidences or the score of the interaction. STRING protein IDs were translated to gene IDs using the human database (org.Hs.eg.db v2.10.1) with Ensembl Protein (ENSEMBLPROT) as the query key.
+From the miRNA:mRNA associations described above, the Affymetrix probesets that demonstrated interactions with five or more miRNA genes (nfac=2) were retained for further interrogation, regardless of LOOCV results. STRING database v 9.1 (Franceschini et al., 2013) files for human were downloaded for further processing. The Bioconductor  v3.0 package (Gentleman et al., 2004) for Affymetrix(R) HGU133-plus2 chips (hgu133plus2.db v3.0.0) was used to translate Affymetrix(R) probeset identifiers to gene identifiers (symbols, gene names, Entrez IDs) in R  v3.1.2 (2014). The gene symbols were translated to STRING database IDs using the STRING protein aliases mapping file. The full set of STRING protein-protein interactions (PPIs) were filtered to those with a combined score greater than 400, as well as individual scores greater than 400 in any one of the "experimental", "database", and "coexpression" evidences. From this subset of PPIs, the interactions with the original set of genes and their interactors (those genes within one edge or interaction) were extracted from the PPI database. For each PPI, only a record that there was an interaction between the two proteins was kept with no information on the number of evidences or the score of the interaction. STRING protein IDs were translated to gene IDs using the human database (org.Hs.eg.db v3.0.0) with Ensembl Protein (ENSEMBLPROT) as the query key ( STRING protein identifiers are a combination of species id and Ensembl protein id). STRING protein-protein interaction information was used to understand signaling pathway enrichment using KEGG and Gene Ontology terms (references from below). 
 
-1. Franceschini A, Szklarczyk D, Frankild S, Kuhn M, Simonovic M, Roth A, Lin J, Minguez P, Bork P, von Mering C, Jensen LJ: STRING v9.1: protein-protein interaction networks, with increased coverage and integration. Nucleic Acids Res. 2013, 41:D808–815
+KEGG and Gene Ontology enrichment was performed using a hypergeometric test (Boyle et al., 2004, http://www.ncbi.nlm.nih.gov/pubmed/15297299), comparing the genes within one edge of the 22 seed genes against all of the genes in the human STRING PPI with edges that passed the scoring criteria. KEGG gene – pathway annotations were obtained from a query of the KEGG REST api using the KEGGREST v1.6.2 Bioconductor package on Feb 11, 2015. Gene Ontology gene – annotations are based on all GO biological process annotations from the org.Hs.eg.db v3.0.0 package.
 
-2. Gentleman R, Carey V, Bates D, Bolstad B, Dettling M, Dudoit S, Ellis B, Gautier L, Ge Y, Gentry J, Hornik K, Hothorn T, Huber W, Iacus S, Irizarry R, Leisch F, Li C, Maechler M, Rossini A, Sawitzki G, Smith C, Smyth G, Tierney L, Yang J, Zhang J: Bioconductor: open software development for computational biology and bioinformatics. Genome Biol 2004, 5:R80
+All code for network generation and enrichment analysis is available from github at: https://github.com/rmflight/black_mirna_mrna_nsclc_network_enrichment
 
-3. R Development Core Team: R: A language and environment for statistical computing. Vienna, Austria: R Foundation for Statistical Computing; 2011
+## Generate STRING based PPI
 
-
-
-# First question
-
-* Of the genes that map to STRING, which ones map to AKT(??) and EGFR pathway? 
-* any other pathways?
-
-## Data
+### Data
 
 mRNA and miRNA from NSCLC cell lines with differential response to erolotinib (EGFR inhibitor). Affy U133 2.0, miRNA TaqMan card.
 
 After reading in the data, what are our options?
 
-* Use *STRINGdb* to get PPI (definite)
+* Use *STRING* to get PPI (definite)
 * Look for GO and KEGG pathway enrichment in the PPI network compared to all of STRING
-
-stringdb - http://www.bioconductor.org/packages/release/bioc/vignettes/STRINGdb/inst/doc/STRINGdb.pdf
-reactomedb
-
-LOO cross-validated PLS results giving interactions between miRNA and mRNA.
 
 ```{r loadData}
 mirData <- read.table("compiledinteractiondata.csv", header=TRUE, stringsAsFactors=FALSE, sep=",")
