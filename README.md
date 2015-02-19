@@ -24,7 +24,7 @@ in R
 
 ```
 library(BiocInstaller)
-biocLite(c("graph", "org.Hs.eg.db", "hgu133plus2.db", "GO.db", "xtable"))
+biocLite(c("graph", "org.Hs.eg.db", "hgu133plus2.db", "GO.db"))
 ```
 
 If you want to re-generate the network figure, you will also need to install `Cytoscape 2.8` with the `CytoscapeRPC` plugin, and the `RCytoscape` Bioconductor package:
