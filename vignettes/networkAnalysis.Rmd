@@ -1,7 +1,13 @@
-# Network Analysis
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{miRNA-mRNA NSCLC Network Enrichment}
+%\VignetteDepends{graph, org.Hs.eg.db, hgu133plus2.db, GO.db, xtable}
+-->
+
+# Network Enrichment
 
 ```{r setup}
-library(pBlackNetworkAnalysis)
+library(black.miRNAmRNA.NSCLC.networkEnrichment)
 library(graph)
 library(org.Hs.eg.db)
 library(hgu133plus2.db)
