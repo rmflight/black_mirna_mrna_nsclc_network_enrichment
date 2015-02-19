@@ -40,7 +40,7 @@ After reading in the data, what are our options?
 * Look for GO and KEGG pathway enrichment in the PPI network compared to all of STRING
 
 ```{r loadData}
-mirData <- read.table("compiledinteractiondata.csv", header=TRUE, stringsAsFactors=FALSE, sep=",")
+mirData <- read.table(file.path(inputDataLoc, "compiledinteractiondata.csv"), header=TRUE, stringsAsFactors=FALSE, sep=",")
 newmRNA <- sapply(seq(1, nrow(mirData)), function(x){
   useID <- mirData$mRNA[x]
   nID <- nchar(useID)
@@ -72,13 +72,13 @@ We want to convert our *Affy* ID's to other gene symbols and names for further u
 outMRNA <- select(hgu133plus2.db, useMRNA$gene, c("SYMBOL", "GENENAME", "ENTREZID"), "PROBEID")
 ```
 
-## STRING PPI
+### STRING PPI
 
-We are doing a programmatic query of STRING because the website is rather limiting in how much data it will show you. So even though we will initially only look at direct interactions, we may get more information than is available off the website, as the website initially limits you to 10 interactions unless you explicitly ask it for more.
+We are doing a programmatic query of STRING because the website is rather limiting in how much data it will show you (top 10 by default). So even though we will initially only look at direct interactions, we may get more information than is available off the website, as the website initially limits you to 10 interactions unless you explicitly ask it for more.
 
-### Translate to STRING ID
+#### Translate to STRING ID
 
-We have downloaded the STRING ID to alias file previously, and we will use our own function to do translation because we get off by 1 errors for the genes we started with.
+We have downloaded the STRING ID to alias file previously, and we will use our own function to do translation because we get off by 1 errors for the genes we started with if we use the `stringdb` package in `Bioconductor`. We then generate STRING Ensembl Proteins from the STRING IDs.
 
 ```{r getSTRINGID}
 stringIDFile <- file.path(stringFileLoc, "9606__protein_aliases_tf.tsv.gz")
@@ -86,14 +86,14 @@ outMRNA_mapped <- map2STRING(outMRNA, "SYMBOL", stringIDFile)
 outMRNA_mapped$ENSEMBLPROT <- substring(outMRNA_mapped$protein_id, 6, 20)
 
 # genes with larger expression values
-seed_genes <- c("CSAG3", "MTRF1", "MAPK1IP1L", "EIF4B", "RAB8A", "KLK8", "PRKX", "PPP1CB")
+seed_genes <- unique(outMRNA_mapped$SYMBOL)
 outMRNA_mapped <- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% seed_genes),]
 ```
 
 We've previously downloaded the STRINGdb files for human. Let's load them up and parse them down.
 
 ```{r stringData}
-stringData <- read.table(file.path(stringFileLoc, "9606.protein.links.detailed.v9.1.txt"), header=TRUE, sep=" ", stringsAsFactors=FALSE)
+stringData <- read.table(file.path(stringFileLoc, "9606.protein.links.detailed.v9.1.txt.gz"), header=TRUE, sep=" ", stringsAsFactors=FALSE)
 head(stringData)
 ```
 
