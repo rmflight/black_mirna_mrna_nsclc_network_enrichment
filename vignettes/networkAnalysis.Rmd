@@ -201,3 +201,17 @@ write.table(sig_kegg_table, file = file.path(outputLoc, "kegg_22.tab"), row.name
 
 **Note** that the output files are written to the location in the version of the package that is cloned, not to the installed package location. 
 
+## Generate Trimmed Network for Visualization
+
+Based on the rest of the data and the above network, three genes were selected for visualization, EIF4B, RAB8A, and PPPC1B. We will create a new PPI network using these three genes, and save it for visualization in the other vignette.
+
+```{r visNetwork, eval=FALSE}
+seedGenes <- c("EIF4B", "RAB8A", "PPP1CB")
+
+seedMRNA <- outMRNA_mapped[(outMRNA_mapped$SYMBOL %in% seedGenes),]
+
+PPI_seed <- getPPI(seedMRNA$protein_id, stringData)
+save(PPI_seed, file = "inst/data/PPI_seed.RData")
+save(seedGenes, file = "inst/data/seedGenes.RData")
+```
+
