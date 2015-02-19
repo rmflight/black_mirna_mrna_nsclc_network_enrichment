@@ -235,7 +235,7 @@ hypergeometric_basic <- function(num_white, num_black, num_drawn, num_white_draw
 PPI_to_graph <- function(PPI, orgDB){
   ppiNodes <- unique(c(PPI$protein1, PPI$protein2))
   ppiGraph <- graphNEL(nodes=ppiNodes, edgemode="directed")
-  ppiGraph <- addEdge(ppiEdges$protein1, ppiEdges$protein2, eifGraph)
+  ppiGraph <- addEdge(PPI$protein1, PPI$protein2, ppiGraph)
 
   trimNodes <- substring(ppiNodes, 6, 20)
   ppiInfo <- select(orgDB, trimNodes, c("SYMBOL", "GENENAME", "ENTREZID"), keytype="ENSEMBLPROT")
@@ -248,4 +248,82 @@ PPI_to_graph <- function(PPI, orgDB){
   }
   
   return(list(info = ppiInfo, graph = ppiGraph))
+}
+
+
+#' collapse nodes and info
+#' 
+#' sometimes our graph has a lot of rather duplicated nodes that we want to collapse for visualization.
+#' thats what this does. Given a graph, the info about the nodes, and the strings to use to find things to
+#' collapse together, returns a new graph and info entries.
+#' 
+#' @param ppiGraph the graph of interactions
+#' @param ppiInfo the information about each node
+#' @param ppiSeed the nodes that were originally used to seed the PPI graph
+#' @param collapseString the strings used to find those things to collapse
+#' 
+#' @export
+#' @return list
+collapseNodes <- function(ppiGraph, ppiInfo, ppiSeed, collapseString){
+  dupEntry <- duplicated(ppiInfo$nodeID)
+  ppiInfo <- ppiInfo[!dupEntry,]
+  
+  ppiInfo$collapseID <- ppiInfo$SYMBOL
+  ppiInfo <- ppiInfo[!(is.na(ppiInfo$SYMBOL)),]
+  
+  for (checkCollapse in collapseString){
+    whichCollapse <- grep(checkCollapse, ppiInfo$SYMBOL)
+    ppiInfo$collapseID[whichCollapse] <- checkCollapse
+  }
+  
+  ## ----collapseGraph Nodes-------------------------------------------------------
+  edgemode(ppiGraph) <- "undirected"
+  
+  ppiMatrix <- as(ppiGraph, "matrix")
+  
+  ppiNew <- ppiMatrix
+  ppiNew <- rbind(ppiNew, matrix(0, nrow=length(collapseSearch), ncol=ncol(ppiNew)))
+  ppiNew <- cbind(ppiNew, matrix(0, nrow=nrow(ppiNew), ncol=length(collapseSearch)))
+  rownames(ppiNew) <- c(rownames(ppiMatrix), collapseString)
+  colnames(ppiNew) <- c(colnames(ppiMatrix), collapseString)
+  
+  for (iCollapse in collapseString){
+    useID <- ppiInfo$nodeID[(ppiInfo$collapseID %in% iCollapse)]
+    
+    for (inID in useID){
+      hasRow <- rownames(ppiNew)[ppiNew[,inID] == 1]
+      ppiNew[hasRow, iCollapse] <- 1
+      
+      hasCol <- colnames(ppiNew)[ppiNew[inID,] == 1]
+      ppiNew[iCollapse, hasCol] <- 1
+    }
+  }
+  
+  for (iCollapse in collapseString){
+    ppiNew[iCollapse, iCollapse] <- 0
+  }
+  
+  keepNodes <- c(ppiInfo$nodeID[!(ppiInfo$collapseID %in% collapseString)], collapseString)
+  ppiNew <- ppiNew[keepNodes, keepNodes]
+  
+  ppiNewGraph <- as(ppiNew, "graphNEL")
+  
+  ## ----ppirabData----------------------------------------------------------
+  ppiNewInfo <- ppiInfo[(ppiInfo$nodeID %in% nodes(ppiNewGraph)),]
+  collapseData <- data.frame(ENSEMBLPROT=collapseString, SYMBOL=collapseString, GENENAME=collapseString, ENTREZID=collapseString, nodeID=collapseString, collapseID=collapseString, stringsAsFactors=FALSE)
+  
+  ppiNewInfo <- rbind(ppiNewInfo, collapseData)
+  
+  displayNodeLoc <- ppiNewInfo$SYMBOL %in% ppiSeed
+  ppiNewInfo$DISPLAY <- ""
+  ppiNewInfo[displayNodeLoc, "DISPLAY"] <- ppiNewInfo[displayNodeLoc, "SYMBOL"]
+  
+  for (iName in c("ENSEMBLPROT", "SYMBOL", "GENENAME", "ENTREZID", "DISPLAY")){
+    nodeDataDefaults(ppiNewGraph, iName) <- ""
+    attr(nodeDataDefaults(ppiNewGraph, iName), "class") <- "STRING"
+    nodeData(ppiNewGraph, ppiNewInfo$nodeID, iName) <- ppiNewInfo[,iName]
+  }
+  ppiNewGraph <- initEdgeAttribute(ppiNewGraph, "weight", "numeric", 1)
+  
+  return(list(info = ppiNewInfo, oldInfo = ppiInfo, graph = ppiNewGraph))
 }
