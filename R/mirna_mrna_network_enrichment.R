@@ -70,8 +70,8 @@ communityAsList <- function(commObject, decreasing=TRUE){
 #' }
 NULL
 
-#' @name visNetwork.RData
-#' @title visNetwork.RData
+#' @name PPI_seed.RData
+#' @title PPI_seed.RData
 #' @docType data
 #' @source filtered STRING PPI network with edges > 400, seeded from EIF4B, RAB8A, and PPPC1B
 NULL
